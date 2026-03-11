@@ -41,7 +41,7 @@ export default function ProAssistHero() {
           className="flex justify-center flex-wrap gap-6"
         >
           <Link
-            href="/hire"
+            href="/browse-talents"
             className="flex items-center justify-center gap-2 w-64 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:scale-105 transition"
           >
             Hire Talent
@@ -49,7 +49,7 @@ export default function ProAssistHero() {
           </Link>
 
           <Link
-            href="/freelancers"
+            href="/browse-talents"
             className="flex items-center justify-center gap-2 w-64 px-6 py-3 border rounded-lg font-medium hover:bg-muted transition"
           >
             Browse Freelancers

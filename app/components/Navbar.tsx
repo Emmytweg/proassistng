@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 const navLinks = [
-  { name: "Freelancers", href: "/freelancers" },
+  { name: "Home", href: "/" },
+  { name: "Freelancers", href: "/browse-talents" },
   { name: "Services", href: "/services" },
   { name: "How It Works", href: "/how-it-works" },
-  { name: "About", href: "/about" },
+  // { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ]
 
@@ -46,7 +47,9 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
-              const active = pathname === link.href
+              const active =
+                pathname === link.href ||
+                (link.href !== "/" && pathname?.startsWith(`${link.href}/`))
 
               return (
                 <Link
@@ -70,10 +73,10 @@ export default function Navbar() {
           {/* CTA */}
           <div className="hidden md:flex items-center gap-4">
             <Link
-              href="/hire"
+              href="/browse-talents"
               className="bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
             >
-              Hire Talent
+              Browse Freelancers
             </Link>
           </div>
 
@@ -110,10 +113,10 @@ export default function Navbar() {
               ))}
 
               <Link
-                href="/hire"
+                href="/browse-talents"
                 className="bg-green-600 text-white text-center py-3 rounded-lg font-semibold"
               >
-                Hire Talent
+                Browse Freelancers
               </Link>
             </div>
           </motion.div>

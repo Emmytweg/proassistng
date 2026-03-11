@@ -1,46 +1,72 @@
 "use client";
 
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Crown, Star } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-const freelancers = [
+type FreelancerCard = {
+  id: string;
+  name: string;
+  role: string;
+  price: string;
+  image: string | null;
+  skills: string[];
+  featured: boolean;
+};
+
+const FALLBACK_FREELANCERS: FreelancerCard[] = [
   {
+    id: "1",
     name: "David A.",
     role: "Full-Stack Developer",
-    rating: 4.9,
-    price: "₦120,000",
-    image: "/tweg.jpg",
+    price: "₦120,000/hr",
+    image: null,
     skills: ["React", "Next.js", "Node.js"],
+    featured: true,
   },
   {
+    id: "2",
     name: "Sarah K.",
     role: "UI/UX Designer",
-    rating: 4.8,
-    price: "₦90,000",
-    image: "/tweg.jpg",
+    price: "₦90,000/hr",
+    image: null,
     skills: ["Figma", "UX Research", "Prototyping"],
+    featured: false,
   },
   {
+    id: "3",
     name: "Michael O.",
     role: "Digital Marketer",
-    rating: 4.7,
-    price: "₦70,000",
-    image: "/tweg.jpg",
+    price: "₦70,000/hr",
+    image: null,
     skills: ["SEO", "Ads", "Analytics"],
+    featured: false,
   },
   {
+    id: "4",
     name: "Grace T.",
     role: "Content Writer",
-    rating: 4.9,
-    price: "₦60,000",
-    image: "/tweg.jpg",
+    price: "₦60,000/hr",
+    image: null,
     skills: ["Copywriting", "SEO", "Blog Writing"],
+    featured: false,
   },
 ];
 
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export default function FeaturedFreelancers() {
+  const [freelancers, setFreelancers] =
+    useState<FreelancerCard[]>(FALLBACK_FREELANCERS);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const skipNextScrollIntoViewRef = useRef(false);
@@ -48,6 +74,52 @@ export default function FeaturedFreelancers() {
   const [activePage, setActivePage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isInView, setIsInView] = useState(true);
+
+  // Fetch active freelancers from Supabase
+  useEffect(() => {
+    (async () => {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data } = await supabase
+          .from("freelancers")
+          .select(
+            "id, full_name, title, photo_url, skills, hourly_rate, rate_type, featured",
+          )
+          .eq("status", "active")
+          .order("featured", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(12);
+
+        if (data && data.length > 0) {
+          setFreelancers(
+            data.map((r: any) => {
+              const amt =
+                typeof r.hourly_rate === "number"
+                  ? `₦${r.hourly_rate.toLocaleString("en-NG")}`
+                  : null;
+              const suffix =
+                r.rate_type === "milestone"
+                  ? "/milestone"
+                  : r.rate_type === "contract"
+                    ? " (contract)"
+                    : "/hr";
+              return {
+                id: String(r.id),
+                name: String(r.full_name ?? "Unnamed"),
+                role: String(r.title ?? "Freelancer"),
+                price: amt ? `${amt}${suffix}` : "Contact for rate",
+                image: r.photo_url ?? null,
+                skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
+                featured: !!r.featured,
+              };
+            }),
+          );
+        }
+      } catch {
+        // silently fall back to hardcoded data
+      }
+    })();
+  }, []);
   const [availabilityByIndex, setAvailabilityByIndex] = useState<boolean[]>(
     () => freelancers.map((_, index) => index % 2 === 0),
   );
@@ -229,10 +301,18 @@ export default function FeaturedFreelancers() {
           >
             {freelancers.map((freelancer, index) => (
               <div
-                key={index}
+                key={freelancer.id}
                 className="snap-start shrink-0 w-full md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-72px)/4)]"
               >
                 <div className="group relative border rounded-2xl p-6 hover:shadow-xl transition bg-card h-full">
+                  {/* Top Rated badge for featured freelancers */}
+                  {freelancer.featured && (
+                    <div className="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-yellow-500 to-amber-400 text-white text-[10px] font-bold px-3 py-1 shadow-md shadow-yellow-400/30">
+                      <Crown className="w-3 h-3" />
+                      Top Rated
+                    </div>
+                  )}
+
                   {/* Live Availability */}
                   {(() => {
                     const isAvailable = availabilityByIndex[index] ?? false;
@@ -263,14 +343,20 @@ export default function FeaturedFreelancers() {
                   })()}
 
                   {/* Profile */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <Image
-                      src={freelancer.image}
-                      alt={freelancer.name}
-                      width={60}
-                      height={60}
-                      className="rounded-full object-cover"
-                    />
+                  <div className="flex items-center gap-4 mb-4 mt-2">
+                    {freelancer.image ? (
+                      <Image
+                        src={freelancer.image}
+                        alt={freelancer.name}
+                        width={60}
+                        height={60}
+                        className="rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-15 h-15 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-lg">
+                        {getInitials(freelancer.name)}
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="font-semibold">{freelancer.name}</h3>
@@ -281,18 +367,9 @@ export default function FeaturedFreelancers() {
                     </div>
                   </div>
 
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-4">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-
-                    <span className="text-sm font-medium">
-                      {freelancer.rating}
-                    </span>
-                  </div>
-
                   {/* Skills */}
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {freelancer.skills.map((skill, i) => (
+                    {freelancer.skills.slice(0, 3).map((skill, i) => (
                       <span
                         key={i}
                         className="text-xs bg-muted px-3 py-1 rounded-full"
@@ -305,11 +382,11 @@ export default function FeaturedFreelancers() {
                   {/* Price + CTA */}
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-primary">
-                      From {freelancer.price}
+                      {freelancer.price}
                     </span>
 
                     <Link
-                      href="/freelancers"
+                      href={`/freelancer/${freelancer.id}`}
                       className="text-sm font-medium hover:underline"
                     >
                       View
@@ -350,7 +427,7 @@ export default function FeaturedFreelancers() {
         {/* Browse Button */}
         <div className="text-center mt-16">
           <Link
-            href="/freelancers"
+            href="/browse-talents"
             className="inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition"
           >
             Browse All Freelancers

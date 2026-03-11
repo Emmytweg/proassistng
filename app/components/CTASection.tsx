@@ -77,12 +77,12 @@ export default function CTASection() {
               transition={{ duration: 0.6, delay: 0.16 }}
               className="mt-10 flex flex-col sm:flex-row gap-4"
             >
-              <Button asChild variant="outline" className="w-full sm:w-auto">
+              {/* <Button asChild variant="outline" className="w-full sm:w-auto">
                 <Link href="/freelancers">Learn more</Link>
-              </Button>
+              </Button> */}
 
               <Button asChild className="w-full sm:w-auto">
-                <Link href="/hire" className="inline-flex items-center gap-2">
+                <Link href="/browse-talents" className="inline-flex items-center gap-2">
                   Get started
                   <ArrowRight className="h-4 w-4" />
                 </Link>
