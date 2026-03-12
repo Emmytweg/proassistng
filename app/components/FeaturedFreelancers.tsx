@@ -16,45 +16,6 @@ type FreelancerCard = {
   featured: boolean;
 };
 
-const FALLBACK_FREELANCERS: FreelancerCard[] = [
-  {
-    id: "1",
-    name: "David A.",
-    role: "Full-Stack Developer",
-    price: "₦120,000/hr",
-    image: null,
-    skills: ["React", "Next.js", "Node.js"],
-    featured: true,
-  },
-  {
-    id: "2",
-    name: "Sarah K.",
-    role: "UI/UX Designer",
-    price: "₦90,000/hr",
-    image: null,
-    skills: ["Figma", "UX Research", "Prototyping"],
-    featured: false,
-  },
-  {
-    id: "3",
-    name: "Michael O.",
-    role: "Digital Marketer",
-    price: "₦70,000/hr",
-    image: null,
-    skills: ["SEO", "Ads", "Analytics"],
-    featured: false,
-  },
-  {
-    id: "4",
-    name: "Grace T.",
-    role: "Content Writer",
-    price: "₦60,000/hr",
-    image: null,
-    skills: ["Copywriting", "SEO", "Blog Writing"],
-    featured: false,
-  },
-];
-
 function getInitials(name: string) {
   return name
     .trim()
@@ -65,8 +26,8 @@ function getInitials(name: string) {
 }
 
 export default function FeaturedFreelancers() {
-  const [freelancers, setFreelancers] =
-    useState<FreelancerCard[]>(FALLBACK_FREELANCERS);
+  const [freelancers, setFreelancers] = useState<FreelancerCard[]>([]);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const skipNextScrollIntoViewRef = useRef(false);
@@ -116,7 +77,9 @@ export default function FeaturedFreelancers() {
           );
         }
       } catch {
-        // silently fall back to hardcoded data
+        // fetch failed, freelancers stays empty
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -285,145 +248,156 @@ export default function FeaturedFreelancers() {
         </div>
 
         {/* Freelancer Carousel */}
-        <div
-          ref={carouselRef}
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onPointerDown={() => setIsPaused(true)}
-          onPointerUp={() => setIsPaused(false)}
-          onPointerCancel={() => setIsPaused(false)}
-        >
+        {loading && (
+          <div className="flex justify-center py-16 text-muted-foreground text-sm">
+            Loading freelancers…
+          </div>
+        )}
+        {!loading && freelancers.length === 0 && (
+          <div className="flex justify-center py-16 text-muted-foreground text-sm">
+            No freelancers available yet.
+          </div>
+        )}
+        {!loading && freelancers.length > 0 && (
           <div
-            ref={scrollerRef}
-            className="-mx-6 px-6 flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-3"
-            aria-label="Featured freelancers"
+            ref={carouselRef}
+            className="relative"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onPointerDown={() => setIsPaused(true)}
+            onPointerUp={() => setIsPaused(false)}
+            onPointerCancel={() => setIsPaused(false)}
           >
-            {freelancers.map((freelancer, index) => (
-              <div
-                key={freelancer.id}
-                className="snap-start shrink-0 w-full md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-72px)/4)]"
-              >
-                <div className="group relative border rounded-2xl p-6 hover:shadow-xl transition bg-card h-full">
-                  {/* Top Rated badge for featured freelancers */}
-                  {freelancer.featured && (
-                    <div className="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-yellow-500 to-amber-400 text-white text-[10px] font-bold px-3 py-1 shadow-md shadow-yellow-400/30">
-                      <Crown className="w-3 h-3" />
-                      Top Rated
-                    </div>
-                  )}
-
-                  {/* Live Availability */}
-                  {(() => {
-                    const isAvailable = availabilityByIndex[index] ?? false;
-
-                    return (
-                      <span
-                        className={
-                          "absolute right-4 top-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium " +
-                          (isAvailable
-                            ? "border-primary/30 bg-primary/10 text-primary"
-                            : "border-muted bg-muted text-muted-foreground")
-                        }
-                        aria-label={
-                          isAvailable ? "Available now" : "Currently busy"
-                        }
-                      >
-                        <span
-                          className={
-                            "h-2 w-2 rounded-full " +
-                            (isAvailable
-                              ? "bg-primary"
-                              : "bg-muted-foreground/60")
-                          }
-                        />
-                        {isAvailable ? "Available now" : "Busy"}
-                      </span>
-                    );
-                  })()}
-
-                  {/* Profile */}
-                  <div className="flex items-center gap-4 mb-4 mt-2">
-                    {freelancer.image ? (
-                      <Image
-                        src={freelancer.image}
-                        alt={freelancer.name}
-                        width={60}
-                        height={60}
-                        className="rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-15 h-15 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-lg">
-                        {getInitials(freelancer.name)}
+            <div
+              ref={scrollerRef}
+              className="-mx-6 px-6 flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-3"
+              aria-label="Featured freelancers"
+            >
+              {freelancers.map((freelancer, index) => (
+                <div
+                  key={freelancer.id}
+                  className="snap-start shrink-0 w-full md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-72px)/4)]"
+                >
+                  <div className="group relative border rounded-2xl p-6 hover:shadow-xl transition bg-card h-full">
+                    {/* Top Rated badge for featured freelancers */}
+                    {freelancer.featured && (
+                      <div className="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-yellow-500 to-amber-400 text-white text-[10px] font-bold px-3 py-1 shadow-md shadow-yellow-400/30">
+                        <Crown className="w-3 h-3" />
+                        Top Rated
                       </div>
                     )}
 
-                    <div>
-                      <h3 className="font-semibold">{freelancer.name}</h3>
+                    {/* Live Availability */}
+                    {(() => {
+                      const isAvailable = availabilityByIndex[index] ?? false;
 
-                      <p className="text-sm text-muted-foreground">
-                        {freelancer.role}
-                      </p>
+                      return (
+                        <span
+                          className={
+                            "absolute right-4 top-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium " +
+                            (isAvailable
+                              ? "border-primary/30 bg-primary/10 text-primary"
+                              : "border-muted bg-muted text-muted-foreground")
+                          }
+                          aria-label={
+                            isAvailable ? "Available now" : "Currently busy"
+                          }
+                        >
+                          <span
+                            className={
+                              "h-2 w-2 rounded-full " +
+                              (isAvailable
+                                ? "bg-primary"
+                                : "bg-muted-foreground/60")
+                            }
+                          />
+                          {isAvailable ? "Available now" : "Busy"}
+                        </span>
+                      );
+                    })()}
+
+                    {/* Profile */}
+                    <div className="flex items-center gap-4 mb-4 mt-2">
+                      {freelancer.image ? (
+                        <Image
+                          src={freelancer.image}
+                          alt={freelancer.name}
+                          width={60}
+                          height={60}
+                          className="rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-15 h-15 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-lg">
+                          {getInitials(freelancer.name)}
+                        </div>
+                      )}
+
+                      <div>
+                        <h3 className="font-semibold">{freelancer.name}</h3>
+
+                        <p className="text-sm text-muted-foreground">
+                          {freelancer.role}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Skills */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {freelancer.skills.slice(0, 3).map((skill, i) => (
+                        <span
+                          key={i}
+                          className="text-xs bg-muted px-3 py-1 rounded-full"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Price + CTA */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-primary">
+                        {freelancer.price}
+                      </span>
+
+                      <Link
+                        href={`/freelancer/${freelancer.id}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        View
+                      </Link>
                     </div>
                   </div>
-
-                  {/* Skills */}
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {freelancer.skills.slice(0, 3).map((skill, i) => (
-                      <span
-                        key={i}
-                        className="text-xs bg-muted px-3 py-1 rounded-full"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Price + CTA */}
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-primary">
-                      {freelancer.price}
-                    </span>
-
-                    <Link
-                      href={`/freelancer/${freelancer.id}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      View
-                    </Link>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {pageCount > 1 && (
-            <div
-              className="mt-6 flex items-center justify-center gap-2"
-              aria-label="Carousel pagination"
-            >
-              {Array.from({ length: pageCount }).map((_, page) => {
-                const isActive = page === activePage;
-
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setActivePage(page)}
-                    className={
-                      "h-2.5 rounded-full transition-all " +
-                      (isActive ? "w-8 bg-primary" : "w-2.5 bg-muted")
-                    }
-                    aria-label={`Go to page ${page + 1}`}
-                    aria-current={isActive ? "true" : "false"}
-                  />
-                );
-              })}
+              ))}
             </div>
-          )}
-        </div>
 
+            {/* Pagination */}
+            {pageCount > 1 && (
+              <div
+                className="mt-6 flex items-center justify-center gap-2"
+                aria-label="Carousel pagination"
+              >
+                {Array.from({ length: pageCount }).map((_, page) => {
+                  const isActive = page === activePage;
+
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setActivePage(page)}
+                      className={
+                        "h-2.5 rounded-full transition-all " +
+                        (isActive ? "w-8 bg-primary" : "w-2.5 bg-muted")
+                      }
+                      aria-label={`Go to page ${page + 1}`}
+                      aria-current={isActive ? "true" : "false"}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
         {/* Browse Button */}
         <div className="text-center mt-16">
           <Link

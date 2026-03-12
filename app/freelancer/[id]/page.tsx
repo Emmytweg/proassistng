@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { serviceCategories } from "@/lib/services";
 import ContactForm from "./contact-form";
+import HireFlow from "./hire-flow";
 
 function getInitials(name: string) {
   return name
@@ -211,6 +212,12 @@ export default async function FreelancerProfilePage({
             {/* Rate card */}
             <div className="rounded-2xl border bg-card p-6 shadow-sm text-center">
               <div className="mt-4 flex flex-col gap-2">
+                <HireFlow
+                  freelancerId={r.id}
+                  freelancerName={r.full_name}
+                  freelancerTitle={r.title ?? "Freelancer"}
+                  freelancerRate={rate}
+                />
                 <a
                   href="#contact"
                   className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
