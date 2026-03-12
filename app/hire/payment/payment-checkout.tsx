@@ -1,10 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CreditCard, Building2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePaystackPayment } from "react-paystack";
+
+// Paystack inline JS is loaded via Script in layout or on demand here.
+// No npm package needed — works with any React version.
+declare global {
+  interface Window {
+    PaystackPop?: {
+      setup(config: {
+        key: string;
+        email: string;
+        amount: number;
+        currency?: string;
+        ref: string;
+        metadata?: object;
+        onClose?: () => void;
+        callback?: (response: {
+          reference: string;
+          transaction: string;
+          status: string;
+        }) => void;
+      }): { openIframe(): void };
+    };
+  }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,7 +63,7 @@ const PAYMENT_METHODS = [
   {
     id: "ussd" as const,
     label: "USSD",
-    sub: "*737# & more",
+    sub: "*737#",
     icon: Smartphone,
   },
 ];
@@ -68,76 +90,90 @@ export default function PaymentCheckout({
   const [method, setMethod] = useState<MethodId>("card");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
+
+  // Load Paystack inline JS once on mount — no npm package needed
+  useEffect(() => {
+    if (window.PaystackPop) {
+      setSdkReady(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
+    script.async = true;
+    script.onload = () => setSdkReady(true);
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const amount = Math.max(1, parseFloat(budget.replace(/[^0-9.]/g, "")) || 0);
-  // Paystack expects amount in kobo (NGN × 100)
+  // Paystack expects kobo (NGN × 100)
   const amountKobo = Math.round(amount * 100);
 
-  const paystackConfig = {
-    reference: `HIRE-${freelancerId}-${Date.now()}`,
-    email: clientEmail,
-    amount: amountKobo,
-    currency: "NGN",
-    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
-    metadata: {
-      custom_fields: [
-        {
-          display_name: "Client Name",
-          variable_name: "client_name",
-          value: clientName,
-        },
-        {
-          display_name: "Freelancer",
-          variable_name: "freelancer_name",
-          value: freelancerName,
-        },
-        {
-          display_name: "Project",
-          variable_name: "project_title",
-          value: projectTitle,
-        },
-      ],
-    },
-  };
-
-  const initializePayment = usePaystackPayment(paystackConfig);
-
   function handlePay() {
-    if (!agreed || loading) return;
+    if (!agreed || loading || !sdkReady || !window.PaystackPop) return;
     setLoading(true);
 
-    initializePayment({
-      onSuccess: (transaction) => {
-        // Fire-and-forget notification to admin inbox + Gmail
-        fetch("/api/notify-hire", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            freelancerId,
-            freelancerName,
-            clientName,
-            clientEmail,
-            projectTitle,
-            category,
-            description,
-            startDate,
-            duration,
-            commitment,
-            requirements,
-            amount,
-            txRef: transaction.reference,
-            transactionId: transaction.transaction,
-          }),
-        }).catch(() => {});
-
-        router.push(
-          `/hire/success?tx_ref=${encodeURIComponent(transaction.reference)}&transaction_id=${transaction.transaction}&amount=${amount}`,
-        );
+    const handler = window.PaystackPop.setup({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
+      email: clientEmail,
+      amount: amountKobo,
+      currency: "NGN",
+      ref: `HIRE-${freelancerId}-${Date.now()}`,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Client Name",
+            variable_name: "client_name",
+            value: clientName,
+          },
+          {
+            display_name: "Freelancer",
+            variable_name: "freelancer_name",
+            value: freelancerName,
+          },
+          {
+            display_name: "Project",
+            variable_name: "project_title",
+            value: projectTitle,
+          },
+        ],
       },
-      onClose: () => {
-        setLoading(false);
+      onClose: () => setLoading(false),
+      callback: (response) => {
+        if (response.status === "success") {
+          fetch("/api/notify-hire", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              freelancerId,
+              freelancerName,
+              clientName,
+              clientEmail,
+              projectTitle,
+              category,
+              description,
+              startDate,
+              duration,
+              commitment,
+              requirements,
+              amount,
+              txRef: response.reference,
+              transactionId: response.transaction,
+            }),
+          }).catch(() => {});
+
+          router.push(
+            `/hire/success?tx_ref=${encodeURIComponent(response.reference)}&transaction_id=${encodeURIComponent(response.transaction)}&amount=${amount}`,
+          );
+        } else {
+          setLoading(false);
+        }
       },
     });
+    handler.openIframe();
   }
 
   return (
@@ -215,7 +251,7 @@ export default function PaymentCheckout({
       {/* Pay button */}
       <Button
         size="lg"
-        disabled={!agreed || loading || amount <= 0}
+        disabled={!agreed || loading || !sdkReady || amount <= 0}
         onClick={handlePay}
         className="w-full rounded-xl text-base font-bold py-6"
       >
