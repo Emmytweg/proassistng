@@ -142,7 +142,7 @@ export default function HowItWorksProtocol() {
 
             <motion.div
               variants={fadeUp}
-              className="inline-flex border-[3px] border-black"
+              className=" flex flex-wrap md:border-[3px] md:border-black"
             >
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -161,7 +161,7 @@ export default function HowItWorksProtocol() {
               >
                 <a
                   href="#benefits"
-                  className="block px-10 py-5 bg-white text-black font-bold text-xl hover:bg-neutral-100 transition-colors border-l-[3px] border-black uppercase"
+                  className="block px-10 py-5 bg-white text-black font-bold text-xl hover:bg-neutral-100 transition-colors md:border-l-[3px] border-black uppercase"
                 >
                   See benefits
                 </a>
@@ -293,10 +293,10 @@ export default function HowItWorksProtocol() {
                 <div className="md:col-span-3 p-4 border-r border-white/20 font-bold tracking-widest">
                   {row.label}
                 </div>
-                <div className="md:col-span-6 p-4 border-r border-white/20 font-medium text-black/90">
+                <div className="md:col-span-6 p-4 border-r border-white/20 font-medium ">
                   {row.description}
                 </div>
-                <div className="md:col-span-2 p-4 text-center font-bold text-green-500">
+                <div className="md:col-span-2 p-4 border rounded-xl m-2 text-center font-bold text-green-500">
                   {row.metric}
                 </div>
               </motion.div>

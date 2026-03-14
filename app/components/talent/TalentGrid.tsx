@@ -33,9 +33,21 @@ export default function TalentGrid(props: {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {talents.map((talent) => (
-          <TalentCard key={`${talent.name}-${talent.role}`} {...talent} />
-        ))}
+        {talents.length === 0 ? (
+          <div className="md:col-span-2 rounded-2xl border bg-card p-6 text-center">
+            <p className="text-base font-semibold">
+              No freelancers match these filters yet
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try clearing one filter or widening your budget range to see more
+              results.
+            </p>
+          </div>
+        ) : (
+          talents.map((talent) => (
+            <TalentCard key={`${talent.name}-${talent.role}`} {...talent} />
+          ))
+        )}
       </div>
     </section>
   );

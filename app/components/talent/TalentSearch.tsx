@@ -32,24 +32,37 @@ export default function TalentSearch(props: {
           <input
             value={query}
             onChange={(e) => update(e.target.value)}
-            placeholder="Search for skills, roles, or keywords"
+            placeholder="Type what you need (example: React developer, logo design, SEO)"
             className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </label>
 
         <Button type="submit" className="sm:w-28">
-          Search
+          Find Talent
         </Button>
+        {query.trim() !== "" && (
+          <Button type="button" variant="outline" onClick={() => update("")}>
+            Clear
+          </Button>
+        )}
       </form>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <p className="text-[11px] font-semibold tracking-wide text-muted-foreground">
-          POPULAR:
+          QUICK START:
         </p>
         {popular.map((item) => (
-          <Badge key={item} variant="outline" className="text-xs">
-            {item}
-          </Badge>
+          <button
+            key={item}
+            type="button"
+            onClick={() => update(item)}
+            className="rounded-full"
+            aria-label={`Search ${item}`}
+          >
+            <Badge variant="outline" className="text-xs">
+              {item}
+            </Badge>
+          </button>
         ))}
       </div>
     </section>

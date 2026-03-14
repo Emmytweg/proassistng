@@ -1,6 +1,7 @@
 "use client";
 
 import TalentFilters from "@/app/components/talent/TalentFilters";
+import type { FiltersState } from "@/app/components/talent/TalentFilters";
 import TalentSearch from "@/app/components/talent/TalentSearch";
 import TalentGrid from "@/app/components/talent/TalentGrid";
 import Pagination from "@/app/components/talent/Pagination";
@@ -16,23 +17,6 @@ import {
 } from "@/components/ui/accordion";
 import Footer from "../components/Footer";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
-
-type FiltersState = {
-  category:
-    | "All Categories"
-    | "Development"
-    | "Design"
-    | "Writing"
-    | "Marketing";
-  minRate: string;
-  maxRate: string;
-  experience: {
-    entry: boolean;
-    intermediate: boolean;
-    expert: boolean;
-  };
-  ratingMin: 4.5 | 4.0;
-};
 
 type TalentItem = TalentCardProps & {
   category: FiltersState["category"];
@@ -108,7 +92,7 @@ export default function BrowseTalentPage() {
     minRate: "",
     maxRate: "",
     experience: { entry: true, intermediate: true, expert: true },
-    ratingMin: 4.0,
+    ratingMin: 0,
   });
 
   useEffect(() => {
@@ -184,6 +168,18 @@ export default function BrowseTalentPage() {
     const hasMin = Number.isFinite(minRate) && filters.minRate.trim() !== "";
     const hasMax = Number.isFinite(maxRate) && filters.maxRate.trim() !== "";
 
+    const normalizedMin = hasMin ? Math.max(0, minRate) : null;
+    const normalizedMax = hasMax ? Math.max(0, maxRate) : null;
+
+    const effectiveMin =
+      normalizedMin != null && normalizedMax != null
+        ? Math.min(normalizedMin, normalizedMax)
+        : normalizedMin;
+    const effectiveMax =
+      normalizedMin != null && normalizedMax != null
+        ? Math.max(normalizedMin, normalizedMax)
+        : normalizedMax;
+
     return allTalents.filter((t) => {
       if (
         filters.category !== "All Categories" &&
@@ -192,10 +188,16 @@ export default function BrowseTalentPage() {
         return false;
       }
 
-      if (t.rating != null && t.rating < filters.ratingMin) return false;
+      if (
+        filters.ratingMin > 0 &&
+        t.rating != null &&
+        t.rating < filters.ratingMin
+      ) {
+        return false;
+      }
 
-      if (hasMin && t.hourlyRate < minRate) return false;
-      if (hasMax && t.hourlyRate > maxRate) return false;
+      if (effectiveMin != null && t.hourlyRate < effectiveMin) return false;
+      if (effectiveMax != null && t.hourlyRate > effectiveMax) return false;
 
       const expAllowed =
         (filters.experience.entry && t.experienceLevel === "Entry Level") ||
@@ -210,6 +212,10 @@ export default function BrowseTalentPage() {
       return includesText(text, needle);
     });
   }, [allTalents, filters, query]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, filters]);
 
   const sorted = useMemo(() => {
     if (sort === "Top Rated") {

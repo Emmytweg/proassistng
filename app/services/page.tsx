@@ -6,6 +6,7 @@ import type { ServiceCategory } from "@/lib/services";
 import { serviceCategories } from "@/lib/services";
 
 function CategoryCard({ slug, title, description, imageUrl, icon: Icon }: ServiceCategory) {
+  
   return (
     <Link
       href={`/services/${slug}`}
@@ -58,9 +59,13 @@ export default function ServicesPage() {
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2  ${
+                 serviceCategories.length - 1 && serviceCategories.length % 2 !== 0
+                  ? "sm:col-span-2"
+                  : ""
+              } `}>
           {serviceCategories.map((cat) => (
-            <CategoryCard key={cat.title} {...cat} />
+            <CategoryCard key={cat.title} {...cat}  />
           ))}
         </div>
 
