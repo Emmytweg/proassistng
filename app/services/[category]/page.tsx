@@ -130,7 +130,7 @@ export default async function ServiceCategoryPage({
             </>
           ) : (
             <p className="mt-2 max-w-2xl text-muted-foreground">
-              We couldn’t find that service category.
+             Sorry, We couldn’t find that service category.
             </p>
           )}
         </div>
