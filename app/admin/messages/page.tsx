@@ -39,105 +39,6 @@ type Message = {
   body: string[];
 };
 
-const MESSAGES: Message[] = [
-  {
-    id: "sarah-jenkins",
-    name: "Sarah Jenkins",
-    email: "sarah.j@designco.com",
-    subject: "Urgent: Account verification issues",
-    preview:
-      "Hi Admin, I’ve been trying to verify my freelancer account for the last 48 hours but the system keeps...",
-    timeLabel: "10:45 AM",
-    receivedAtLabel: "Oct 19, 2023 at 10:45 AM",
-    userId: "#F-92841",
-    signatureTitle: "Senior UI/UX Designer",
-    unread: false,
-    starred: false,
-    attachments: [
-      { name: "error_screenshot_01.png", size: "2.4 MB" },
-      { name: "id_verification_failed.png", size: "1.8 MB" },
-    ],
-    body: [
-      "Dear ProAssistNG Support Team,",
-      'I hope this message finds you well. I am writing to report a recurring issue I’ve encountered while trying to complete my profile verification. I’ve uploaded my government-issued ID and professional certificates multiple times over the last 48 hours, but each time the process reaches 95%, I receive a generic "Processing Error" message.',
-      "This is quite urgent for me as I have three potential clients waiting to award me projects, but I cannot accept them until my account status is verified. I have attached screenshots of the error message for your reference.",
-      "Please let me know if there’s any other information I should provide to expedite this process.",
-    ],
-  },
-  {
-    id: "marcus-wright",
-    name: "Marcus Wright",
-    email: "m.wright@techlink.io",
-    subject: "Payment withdrawal status",
-    preview:
-      "I requested a withdrawal on Tuesday and it’s still showing as ‘Pending’. Could you check the status...",
-    timeLabel: "09:12 AM",
-    receivedAtLabel: "Oct 19, 2023 at 09:12 AM",
-    userId: "#C-10411",
-    unread: false,
-    starred: false,
-    body: [
-      "Hello ProAssistNG team,",
-      "I requested a withdrawal on Tuesday and it’s still showing as ‘Pending’. Could you please check the status and let me know if anything is required from my side?",
-      "Thank you,",
-    ],
-  },
-  {
-    id: "elena-rodriguez",
-    name: "Elena Rodriguez",
-    email: "elena.rod@creative.net",
-    subject: "Portfolio upload error",
-    preview:
-      "Every time I try to upload a PDF file larger than 5MB for my portfolio, the page crashes...",
-    timeLabel: "Yesterday",
-    receivedAtLabel: "Oct 18, 2023 at 04:02 PM",
-    userId: "#F-77102",
-    unread: true,
-    starred: false,
-    body: [
-      "Hi Support,",
-      "Every time I try to upload a PDF larger than 5MB to my portfolio, the page crashes. Can you help me troubleshoot this?",
-      "Regards,",
-    ],
-  },
-  {
-    id: "david-smith",
-    name: "David Smith",
-    email: "d.smith@freelance.com",
-    subject: "Report: Inappropriate client behavior",
-    preview:
-      "I would like to report a client who has been making unprofessional demands outside of the contract...",
-    timeLabel: "Oct 17",
-    receivedAtLabel: "Oct 17, 2023 at 11:18 AM",
-    userId: "#F-55310",
-    unread: false,
-    starred: false,
-    body: [
-      "Hello Admin,",
-      "I would like to report a client who has been making unprofessional demands outside of the agreed contract. Please advise on next steps.",
-      "Thanks,",
-    ],
-  },
-  {
-    id: "julie-chen",
-    name: "Julie Chen",
-    email: "jchen@devlabs.com",
-    subject: "New agency registration query",
-    preview:
-      "We are a small development agency and would like to know if we can register as a single entity...",
-    timeLabel: "Oct 16",
-    receivedAtLabel: "Oct 16, 2023 at 08:41 AM",
-    userId: "#A-20019",
-    unread: false,
-    starred: false,
-    body: [
-      "Hello ProAssistNG,",
-      "We are a small development agency and would like to know if we can register as a single entity on the platform. What’s the recommended approach?",
-      "Best,",
-    ],
-  },
-];
-
 type TabKey = "all" | "unread" | "starred";
 
 function initials(name: string) {
@@ -152,13 +53,9 @@ export default function AdminMessagesPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") ?? "";
   const [activeTab, setActiveTab] = useState<TabKey>("all");
-  const [messages, setMessages] = useState<Message[]>(MESSAGES);
-  const [selectedId, setSelectedId] = useState<string>(MESSAGES[0]?.id ?? "");
-  const [readState, setReadState] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    for (const m of MESSAGES) initial[m.id] = !(m.unread ?? false);
-    return initial;
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [readState, setReadState] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [fetchKey, setFetchKey] = useState(0);
@@ -187,7 +84,7 @@ export default function AdminMessagesPage() {
         const { data, error } = await supabase
           .from("messages")
           .select(
-            "id, sender_name, sender_email, user_ref, subject, body, attachments, starred, unread, received_at",
+            "id, sender_name, sender_email, user_ref, subject, body, attachments, starred, unread, status, received_at",
           )
           .order("received_at", { ascending: false })
           .limit(50);
@@ -294,10 +191,10 @@ export default function AdminMessagesPage() {
   );
 
   return (
-    <div className="-m-8 h-full min-h-[calc(100vh-4rem)] flex overflow-hidden bg-background">
+    <div className="-m-4 flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background sm:-m-6 lg:-m-8 lg:flex-row">
       {/* Messages list */}
-      <section className="w-2/5 min-w-85 border-r border-border bg-card/60 overflow-hidden">
-        <div className="p-4 border-b border-border sticky top-0 bg-background/70 backdrop-blur z-10 flex items-center justify-between">
+      <section className="w-full border-b border-border bg-card/60 overflow-hidden lg:w-2/5 lg:min-w-88 lg:border-b-0 lg:border-r">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/70 p-4 backdrop-blur">
           <div className="flex gap-2">
             <button
               type="button"
@@ -365,7 +262,7 @@ export default function AdminMessagesPage() {
           </div>
         </div>
 
-        <div className="h-full overflow-y-auto divide-y divide-border">
+        <div className="max-h-[42vh] overflow-y-auto divide-y divide-border lg:max-h-none lg:h-full">
           {loadError ? (
             <div className="p-6 text-sm text-destructive bg-destructive/10 border-b border-destructive/20">
               {loadError}
@@ -390,7 +287,7 @@ export default function AdminMessagesPage() {
                   setReadState((prev) => ({ ...prev, [m.id]: true }));
                 }}
                 className={
-                  "w-full text-left p-4 transition-colors " +
+                  "w-full p-3 text-left transition-colors sm:p-4 " +
                   (isSelected
                     ? "bg-primary/5 border-l-4 border-primary"
                     : "hover:bg-muted/40")
@@ -438,121 +335,130 @@ export default function AdminMessagesPage() {
       </section>
 
       {/* Detail panel */}
-      <section className="w-3/5 flex flex-col bg-background overflow-hidden">
+      <section className="flex w-full min-h-0 flex-col overflow-hidden bg-background lg:w-3/5">
         {/* Actions bar */}
-        <div className="px-8 py-4 bg-background border-b border-border flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="shrink-0 border-b border-border bg-background px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                title="Archive"
+                disabled={!selected}
+                className="p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors disabled:opacity-40"
+                onClick={async () => {
+                  if (!selected) return;
+                  const supabase = getSupabaseBrowserClient();
+                  await supabase
+                    .from("messages")
+                    .update({ status: "archived" })
+                    .eq("id", selected.id);
+                  setMessages((prev) =>
+                    prev.filter((m) => m.id !== selected.id),
+                  );
+                  const next = filtered.find((m) => m.id !== selected.id);
+                  setSelectedId(next?.id ?? "");
+                  setToast({ type: "success", message: "Message archived." });
+                }}
+              >
+                <Archive className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                title="Delete"
+                disabled={!selected}
+                className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors disabled:opacity-40"
+                onClick={async () => {
+                  if (!selected) return;
+                  const supabase = getSupabaseBrowserClient();
+                  await supabase
+                    .from("messages")
+                    .delete()
+                    .eq("id", selected.id);
+                  setMessages((prev) =>
+                    prev.filter((m) => m.id !== selected.id),
+                  );
+                  const next = filtered.find((m) => m.id !== selected.id);
+                  setSelectedId(next?.id ?? "");
+                  setToast({ type: "success", message: "Message deleted." });
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <div className="mx-1 h-6 w-px bg-border sm:mx-2" />
+              <button
+                type="button"
+                title="Mark as unread"
+                disabled={!selected}
+                className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-40"
+                onClick={async () => {
+                  if (!selected) return;
+                  setReadState((prev) => ({ ...prev, [selected.id]: false }));
+                  const supabase = getSupabaseBrowserClient();
+                  await supabase
+                    .from("messages")
+                    .update({ unread: true })
+                    .eq("id", selected.id);
+                }}
+              >
+                <MailOpen className="w-4 h-4" />
+              </button>
+            </div>
+
             <button
               type="button"
-              title="Archive"
               disabled={!selected}
-              className="p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors disabled:opacity-40"
+              title={
+                selected?.status === "resolved"
+                  ? "Mark as Open"
+                  : "Mark as Resolved"
+              }
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors disabled:opacity-40 sm:px-4 sm:text-sm ${
+                selected?.status === "resolved"
+                  ? "bg-muted text-muted-foreground hover:bg-muted/70"
+                  : "bg-primary/10 text-primary hover:bg-primary/15"
+              }`}
               onClick={async () => {
                 if (!selected) return;
+                const newStatus =
+                  selected.status === "resolved" ? "open" : "resolved";
                 const supabase = getSupabaseBrowserClient();
                 await supabase
                   .from("messages")
-                  .update({ status: "archived" })
+                  .update({ status: newStatus })
                   .eq("id", selected.id);
-                setMessages((prev) => prev.filter((m) => m.id !== selected.id));
-                const next = filtered.find((m) => m.id !== selected.id);
-                setSelectedId(next?.id ?? "");
-                setToast({ type: "success", message: "Message archived." });
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === selected.id ? { ...m, status: newStatus } : m,
+                  ),
+                );
+                setToast({
+                  type: "success",
+                  message:
+                    newStatus === "resolved"
+                      ? "Marked as resolved."
+                      : "Marked as open.",
+                });
               }}
             >
-              <Archive className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              title="Delete"
-              disabled={!selected}
-              className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors disabled:opacity-40"
-              onClick={async () => {
-                if (!selected) return;
-                const supabase = getSupabaseBrowserClient();
-                await supabase.from("messages").delete().eq("id", selected.id);
-                setMessages((prev) => prev.filter((m) => m.id !== selected.id));
-                const next = filtered.find((m) => m.id !== selected.id);
-                setSelectedId(next?.id ?? "");
-                setToast({ type: "success", message: "Message deleted." });
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <div className="h-6 w-px bg-border mx-2" />
-            <button
-              type="button"
-              title="Mark as unread"
-              disabled={!selected}
-              className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-40"
-              onClick={async () => {
-                if (!selected) return;
-                setReadState((prev) => ({ ...prev, [selected.id]: false }));
-                const supabase = getSupabaseBrowserClient();
-                await supabase
-                  .from("messages")
-                  .update({ unread: true })
-                  .eq("id", selected.id);
-              }}
-            >
-              <MailOpen className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4" />
+              {selected?.status === "resolved"
+                ? "Mark as Open"
+                : "Mark as Resolved"}
             </button>
           </div>
-
-          <button
-            type="button"
-            disabled={!selected}
-            title={
-              selected?.status === "resolved"
-                ? "Mark as Open"
-                : "Mark as Resolved"
-            }
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 disabled:opacity-40 ${
-              selected?.status === "resolved"
-                ? "bg-muted text-muted-foreground hover:bg-muted/70"
-                : "bg-primary/10 text-primary hover:bg-primary/15"
-            }`}
-            onClick={async () => {
-              if (!selected) return;
-              const newStatus =
-                selected.status === "resolved" ? "open" : "resolved";
-              const supabase = getSupabaseBrowserClient();
-              await supabase
-                .from("messages")
-                .update({ status: newStatus })
-                .eq("id", selected.id);
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === selected.id ? { ...m, status: newStatus } : m,
-                ),
-              );
-              setToast({
-                type: "success",
-                message:
-                  newStatus === "resolved"
-                    ? "Marked as resolved."
-                    : "Marked as open.",
-              });
-            }}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            {selected?.status === "resolved"
-              ? "Mark as Open"
-              : "Mark as Resolved"}
-          </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {selected ? (
             <div className="max-w-3xl mx-auto">
-              <div className="flex justify-between items-start mb-8 gap-6">
-                <div className="flex items-center gap-4 min-w-0">
+              <div className="mb-6 flex flex-col items-start justify-between gap-3 sm:mb-8 sm:flex-row sm:items-start sm:gap-6">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl shrink-0">
                     {initials(selected.name) || "U"}
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-xl font-bold text-foreground truncate">
+                    <h2 className="truncate text-lg font-bold text-foreground sm:text-xl">
                       {selected.name}
                     </h2>
                     <p className="text-sm text-muted-foreground truncate">
@@ -560,7 +466,7 @@ export default function AdminMessagesPage() {
                     </p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="shrink-0 text-left sm:text-right">
                   <p className="text-xs font-bold text-muted-foreground">
                     RECEIVED
                   </p>
@@ -570,8 +476,8 @@ export default function AdminMessagesPage() {
                 </div>
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-                <h1 className="text-lg font-bold text-foreground mb-4 pb-4 border-b border-border">
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+                <h1 className="mb-4 border-b border-border pb-4 text-base font-bold text-foreground sm:text-lg">
                   Subject: {selected.subject}
                 </h1>
                 <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
@@ -616,8 +522,8 @@ export default function AdminMessagesPage() {
                 </div>
               </div>
 
-              <div className="mt-8 flex gap-4">
-                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:gap-4">
+                <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted sm:flex">
                   <User className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
@@ -645,13 +551,13 @@ export default function AdminMessagesPage() {
                     }
                     disabled={!selected.email || replySending}
                   />
-                  <div className="flex justify-end mt-2">
+                  <div className="mt-2 flex justify-end">
                     <button
                       type="button"
                       disabled={
                         !selected.email || !replyText.trim() || replySending
                       }
-                      className="bg-primary text-primary-foreground px-6 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2 text-xs font-bold text-primary-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                       onClick={async () => {
                         if (!selected.email || !replyText.trim()) return;
                         setReplySending(true);
@@ -711,7 +617,7 @@ export default function AdminMessagesPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl text-sm font-medium max-w-sm ${
+            className={`fixed bottom-4 left-4 right-4 z-50 flex max-w-sm items-center gap-3 rounded-2xl px-5 py-4 text-sm font-medium shadow-xl sm:bottom-6 sm:left-auto sm:right-6 ${
               toast.type === "success"
                 ? "bg-green-600 text-white"
                 : "bg-red-600 text-white"

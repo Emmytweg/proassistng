@@ -135,9 +135,11 @@ export default function FreelancersPage() {
           const suffix =
             r.rate_type === "milestone"
               ? "/milestone"
-              : r.rate_type === "contract"
-                ? " (contract)"
-                : "/hr";
+              : r.rate_type === "monthly"
+                ? "/month"
+                : r.rate_type === "contract"
+                  ? " (contract)"
+                  : "/hr";
           return {
             id: String(r.id),
             name: String(r.full_name ?? "Unnamed"),
@@ -224,7 +226,7 @@ export default function FreelancersPage() {
         variants={v.fadeUp}
         initial="hidden"
         animate="show"
-        className="bg-card rounded-xl border shadow-sm overflow-hidden"
+        className="bg-card rounded-xl border shadow-sm overflow-auto"
       >
         {loadError ? (
           <div className="p-6 text-sm text-destructive bg-destructive/10 border-b border-destructive/20">
@@ -286,7 +288,7 @@ export default function FreelancersPage() {
                       {row.title}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 truncate">
                     <SkillsChips skills={row.skills} />
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">{row.rate}</td>

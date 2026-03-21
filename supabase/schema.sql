@@ -46,7 +46,7 @@ create table if not exists public.freelancers (
   experience text,
   status text not null default 'active',
   hourly_rate numeric,
-  rate_type text not null default 'hourly',
+  rate_type text not null default 'hourly' check (rate_type in ('hourly', 'monthly', 'milestone', 'contract')),
   portfolio_url text,
   bio text,
   skills text[] not null default '{}',
@@ -65,6 +65,27 @@ alter table public.freelancers add column if not exists hourly_rate numeric;
 alter table public.freelancers add column if not exists rate_type text not null default 'hourly';
 alter table public.freelancers add column if not exists service_slugs text[] not null default '{}'::text[];
 alter table public.freelancers add column if not exists phone_number text;
+
+-- Normalize historic/unknown values before adding strict check constraints.
+update public.freelancers
+set rate_type = 'hourly'
+where rate_type is null
+  or rate_type not in ('hourly', 'monthly', 'milestone', 'contract');
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'freelancers_rate_type_check'
+      and conrelid = 'public.freelancers'::regclass
+  ) then
+    alter table public.freelancers
+      add constraint freelancers_rate_type_check
+      check (rate_type in ('hourly', 'monthly', 'milestone', 'contract'));
+  end if;
+end
+$$;
 
 alter table public.freelancers enable row level security;
 

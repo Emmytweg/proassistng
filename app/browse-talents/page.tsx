@@ -74,6 +74,7 @@ function formatRate(
 ): string {
   if (hourlyRate == null) return "Contact for rate";
   const amt = `₦${hourlyRate.toLocaleString("en-NG")}`;
+  if (rateType === "monthly") return `${amt}/month`;
   if (rateType === "milestone") return `${amt}/milestone`;
   if (rateType === "contract") return `${amt} (contract)`;
   return `${amt}/hr`;

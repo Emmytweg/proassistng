@@ -61,9 +61,11 @@ export default function FeaturedFreelancers() {
               const suffix =
                 r.rate_type === "milestone"
                   ? "/milestone"
-                  : r.rate_type === "contract"
-                    ? " (contract)"
-                    : "/hr";
+                  : r.rate_type === "monthly"
+                    ? "/month"
+                    : r.rate_type === "contract"
+                      ? " (contract)"
+                      : "/hr";
               return {
                 id: String(r.id),
                 name: String(r.full_name ?? "Unnamed"),
@@ -276,12 +278,13 @@ export default function FeaturedFreelancers() {
               {freelancers.map((freelancer, index) => (
                 <div
                   key={freelancer.id}
-                  className="snap-start shrink-0 w-full md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-72px)/4)]"
+                  className="snap-start shrink-0 w-full md:w-[calc((100%-24px)/2)] lg:w-[calc((100%-72px)/4)] py-8
+                  "
                 >
                   <div className="group relative border rounded-2xl p-6 hover:shadow-xl transition bg-card h-full">
                     {/* Top Rated badge for featured freelancers */}
                     {freelancer.featured && (
-                      <div className="absolute -top-3 left-4 z-10 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-yellow-500 to-amber-400 text-white text-[10px] font-bold px-3 py-1 shadow-md shadow-yellow-400/30">
+                      <div className="absolute top-0  my-2 left-4 z-10 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-yellow-500 to-amber-400 text-white text-[10px] font-bold px-3 py-1 shadow-md shadow-yellow-400/30">
                         <Crown className="w-3 h-3" />
                         Top Rated
                       </div>
@@ -317,7 +320,7 @@ export default function FeaturedFreelancers() {
                     })()}
 
                     {/* Profile */}
-                    <div className="flex items-center gap-4 mb-4 mt-2">
+                    <div className="flex items-center gap-4 mb-4 mt-3">
                       {freelancer.image ? (
                         <Image
                           src={freelancer.image}

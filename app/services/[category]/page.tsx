@@ -14,6 +14,7 @@ function formatRate(
 ): string {
   if (hourlyRate == null) return "Contact for rate";
   const amt = `₦${hourlyRate.toLocaleString("en-NG")}`;
+  if (rateType === "monthly") return `${amt}/month`;
   if (rateType === "milestone") return `${amt}/milestone`;
   if (rateType === "contract") return `${amt} (contract)`;
   return `${amt}/hr`;
@@ -130,7 +131,7 @@ export default async function ServiceCategoryPage({
             </>
           ) : (
             <p className="mt-2 max-w-2xl text-muted-foreground">
-             Sorry, We couldn’t find that service category.
+              Sorry, We couldn’t find that service category.
             </p>
           )}
         </div>

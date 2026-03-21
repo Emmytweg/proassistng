@@ -309,7 +309,7 @@ export default function AdminPage() {
         // Recent freelancers can fail if the table lacks created_at/status yet.
         const recentPrimary = await supabase
           .from("freelancers")
-          .select("full_name, title, hourly_rate, status, featured")
+          .select("full_name, title, hourly_rate, rate_type, status, featured")
           .order("created_at", { ascending: false })
           .limit(4);
 
@@ -319,7 +319,7 @@ export default function AdminPage() {
         if (recentError && isMissingColumnOrBadRequest(recentError)) {
           const recentFallback = await supabase
             .from("freelancers")
-            .select("full_name, title, hourly_rate, featured")
+            .select("full_name, title, hourly_rate, rate_type, featured")
             .order("id", { ascending: false })
             .limit(4);
 
@@ -385,8 +385,18 @@ export default function AdminPage() {
 
         const mappedRecent: RecentFreelancer[] = (recentData ?? []).map(
           (r: any) => {
-            const hourly =
-              typeof r.hourly_rate === "number" ? `$${r.hourly_rate}/hr` : "—";
+            const amount =
+              typeof r.hourly_rate === "number"
+                ? `₦${r.hourly_rate.toLocaleString("en-NG")}`
+                : null;
+            const suffix =
+              r.rate_type === "monthly"
+                ? "/month"
+                : r.rate_type === "milestone"
+                  ? "/milestone"
+                  : r.rate_type === "contract"
+                    ? " (contract)"
+                    : "/hr";
             const status = String(r.status ?? "active").toLowerCase();
             const normalized: RecentFreelancer["status"] =
               status === "pending"
@@ -397,7 +407,7 @@ export default function AdminPage() {
             return {
               name: String(r.full_name ?? "Unnamed"),
               role: String(r.title ?? "—"),
-              rate: hourly,
+              rate: amount ? `${amount}${suffix}` : "—",
               status: normalized,
             };
           },

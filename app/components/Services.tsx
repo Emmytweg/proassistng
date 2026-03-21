@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Feature } from "@/components/ui/feature-section-with-bento-grid";
@@ -55,7 +55,6 @@ const services = [
 ];
 
 export default function Services() {
-  const cardsTopRef = useRef<HTMLDivElement | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(services.length);
   const [page, setPage] = useState(0);
 
@@ -88,12 +87,6 @@ export default function Services() {
     if (page !== currentPage) setPage(currentPage);
   }, [page, currentPage]);
 
-  useEffect(() => {
-    // When paginating on smaller screens, bring the grid back into view.
-    if (itemsPerPage >= services.length) return;
-    cardsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [currentPage, itemsPerPage]);
-
   return (
     <section className="py-24 px-6 bg-muted/40">
       <div className="max-w-7xl mx-auto">
@@ -124,10 +117,7 @@ export default function Services() {
 
         {/* Mobile/Tablet: Paginated Grid */}
         <div className="lg:hidden">
-          <div
-            ref={cardsTopRef}
-            className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-          >
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {pagedServices.map((service, index) => {
               const Icon = service.icon;
 

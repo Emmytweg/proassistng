@@ -35,6 +35,7 @@ function formatRate(
 ): string {
   if (hourlyRate == null) return "Contact for rate";
   const amt = `₦${hourlyRate.toLocaleString("en-NG")}`;
+  if (rateType === "monthly") return `${amt}/month`;
   if (rateType === "milestone") return `${amt}/milestone`;
   if (rateType === "contract") return `${amt} (contract)`;
   return `${amt}/hr`;
@@ -78,7 +79,7 @@ export default async function FreelancerProfilePage({
     <main className="min-h-screen bg-muted/30">
       <Navbar />
 
-      <div className="mx-auto max-w-5xl px-6 py-10 pt-24">
+      <div className="mx-auto max-w-5xl px-4 py-10 pt-24 sm:px-6">
         {/* Back */}
         <Link
           href="/browse-talents"
@@ -92,8 +93,8 @@ export default async function FreelancerProfilePage({
           {/* ── LEFT COLUMN ── */}
           <div className="space-y-6">
             {/* Header card */}
-            <div className="rounded-2xl border bg-card p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start gap-6">
+            <div className="rounded-3xl border bg-card p-4 shadow-sm sm:p-6">
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
                 {/* Avatar */}
                 <div className="relative shrink-0">
                   {r.photo_url ? (
@@ -102,10 +103,10 @@ export default async function FreelancerProfilePage({
                       alt={r.full_name}
                       width={96}
                       height={96}
-                      className="rounded-2xl object-cover shadow-md"
+                      className="h-24 w-24 rounded-full object-cover shadow-md sm:h-28 sm:w-28"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-2xl shadow-md">
+                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-2xl shadow-md sm:h-28 sm:w-28">
                       {getInitials(r.full_name)}
                     </div>
                   )}
@@ -116,42 +117,42 @@ export default async function FreelancerProfilePage({
                 </div>
 
                 {/* Meta */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-black tracking-tight">
+                <div className="w-full min-w-0 text-center sm:flex-1 sm:text-left">
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                    <h1 className="max-w-full wrap-break-word text-xl font-black leading-tight tracking-tight sm:text-2xl">
                       {r.full_name}
                     </h1>
                     <span className="inline-flex items-center justify-center rounded-full border bg-background p-0.5 text-primary">
                       <BadgeCheck className="size-5" aria-label="Verified" />
                     </span>
                     {r.featured && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400/20 text-yellow-600 text-xs font-bold px-3 py-0.5">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400/20 text-yellow-600 text-xs font-bold px-3 py-2">
                         ★ Top Rated
                       </span>
                     )}
                   </div>
 
-                  <p className="mt-1 text-base font-semibold text-primary">
+                  <p className="mt-1 text-sm font-semibold text-primary sm:text-base">
                     {r.title ?? "Freelancer"}
                   </p>
 
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    <span className="inline-flex items-center justify-center gap-1.5 rounded-xl border bg-primary/5 px-3 py-2 text-sm font-semibold text-foreground sm:justify-start">
+                      <Briefcase className="size-4 shrink-0" />
+                      {rate}
+                    </span>
                     {r.location && (
-                      <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center gap-1.5 rounded-xl border bg-muted/40 px-3 py-2 text-sm text-muted-foreground sm:justify-start">
                         <MapPin className="size-4 shrink-0" />
                         {r.location}
                       </span>
                     )}
                     {r.experience && (
-                      <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center gap-1.5 rounded-xl border bg-muted/40 px-3 py-2 text-sm text-muted-foreground sm:col-span-2 sm:justify-start">
                         <Clock className="size-4 shrink-0" />
                         {r.experience} experience
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
-                      <Briefcase className="size-4 shrink-0" />
-                      {rate}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -210,8 +211,17 @@ export default async function FreelancerProfilePage({
           {/* ── RIGHT COLUMN ── */}
           <div className="space-y-5">
             {/* Rate card */}
-            <div className="rounded-2xl border bg-card p-6 shadow-sm text-center">
-              <div className="mt-4 flex flex-col gap-2">
+            <div className="rounded-3xl border bg-card p-4 shadow-sm sm:p-6">
+              <div className="mb-4 rounded-2xl border bg-primary/5 px-4 py-3 text-center">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary/80">
+                  Rate
+                </p>
+                <p className="mt-1 text-xl font-black tracking-tight text-foreground sm:text-2xl">
+                  {rate}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
                 <HireFlow
                   freelancerId={r.id}
                   freelancerName={r.full_name}
