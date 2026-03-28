@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CreditCard, Building2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
 
 // Paystack inline JS is loaded via Script in layout or on demand here.
 // No npm package needed — works with any React version.
@@ -108,7 +109,9 @@ export default function PaymentCheckout({
     };
   }, []);
 
-  const amount = Math.max(1, parseFloat(budget.replace(/[^0-9.]/g, "")) || 0);
+  const { baseAmount, platformFee, totalAmount } =
+    calculateTransactionBreakdown(budget);
+  const amount = Math.max(1, totalAmount);
   // Paystack expects kobo (NGN × 100)
   const amountKobo = Math.round(amount * 100);
 
@@ -159,6 +162,8 @@ export default function PaymentCheckout({
               duration,
               commitment,
               requirements,
+              baseAmount,
+              platformFee,
               amount,
               txRef: response.reference,
               transactionId: response.transaction,
@@ -166,7 +171,7 @@ export default function PaymentCheckout({
           }).catch(() => {});
 
           router.push(
-            `/hire/success?tx_ref=${encodeURIComponent(response.reference)}&transaction_id=${encodeURIComponent(response.transaction)}&amount=${amount}`,
+            `/hire/success?tx_ref=${encodeURIComponent(response.reference)}&transaction_id=${encodeURIComponent(response.transaction)}&amount=${amount}&base_amount=${baseAmount}&platform_fee=${platformFee}`,
           );
         } else {
           setLoading(false);

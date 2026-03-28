@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
 
 // Escape HTML entities to prevent injection in email HTML body
 function esc(str: string): string {
@@ -35,6 +36,12 @@ export async function POST(req: NextRequest) {
   const txRef = String(body.txRef ?? "").slice(0, 200);
   const transactionId = String(body.transactionId ?? "").slice(0, 200);
   const amount = Math.max(0, Number(body.amount) || 0);
+  const baseAmountRaw = Math.max(0, Number(body.baseAmount) || 0);
+  const platformFeeRaw = Math.max(0, Number(body.platformFee) || 0);
+  const fallback = calculateTransactionBreakdown(amount / 1.1);
+  const baseAmount = baseAmountRaw > 0 ? baseAmountRaw : fallback.baseAmount;
+  const platformFee =
+    platformFeeRaw > 0 ? platformFeeRaw : fallback.platformFee;
 
   if (!freelancerId) {
     return NextResponse.json(
@@ -63,7 +70,9 @@ export async function POST(req: NextRequest) {
         `Start: ${startDate}  |  Duration: ${duration}  |  Hours: ${commitment}`,
         requirements ? `Requirements: ${requirements}` : "",
         ``,
-        `Budget: ₦${amount.toLocaleString("en-NG")}`,
+        `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
+        `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+        `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
         ``,
         txRef ? `Paystack Ref: ${txRef}` : "",
         transactionId ? `Transaction ID: ${transactionId}` : "",
@@ -111,7 +120,9 @@ export async function POST(req: NextRequest) {
         `Start: ${startDate} | Duration: ${duration} | Hours: ${commitment}`,
         requirements ? `Requirements: ${requirements}` : "",
         ``,
-        `Budget: ₦${amount.toLocaleString("en-NG")}`,
+        `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
+        `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+        `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
         txRef ? `Paystack Ref: ${txRef}` : "",
         transactionId ? `Transaction ID: ${transactionId}` : "",
         ``,
@@ -138,8 +149,9 @@ export async function POST(req: NextRequest) {
         ${description ? `<div style="background:#f9fafb;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.7;margin-bottom:20px"><strong>Description</strong><br>${esc(description)}</div>` : ""}
 
         <div style="background:#111;color:#fff;border-radius:12px;padding:16px 20px;text-align:center;margin-bottom:20px">
-          <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Budget</p>
+          <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Total Paid</p>
           <p style="margin:4px 0 0;font-size:28px;font-weight:900">₦${amount.toLocaleString("en-NG")}</p>
+          <p style="margin:8px 0 0;font-size:12px;opacity:0.8">Freelancer: ₦${baseAmount.toLocaleString("en-NG")} · Fee (10%): ₦${platformFee.toLocaleString("en-NG")}</p>
         </div>
 
         ${

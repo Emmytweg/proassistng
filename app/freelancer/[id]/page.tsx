@@ -228,12 +228,12 @@ export default async function FreelancerProfilePage({
                   freelancerTitle={r.title ?? "Freelancer"}
                   freelancerRate={rate}
                 />
-                <a
+                {/* <a
                   href="#contact"
                   className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   Contact {r.full_name.split(" ")[0]}
-                </a>
+                </a> */}
                 {whatsappNumber && (
                   <a
                     href={`https://wa.me/${whatsappNumber}`}

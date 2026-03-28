@@ -2,6 +2,10 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import {
+  calculateTransactionBreakdown,
+  parseNairaAmount,
+} from "@/lib/payment-pricing";
 
 export default async function HireSuccessPage({
   searchParams,
@@ -11,7 +15,13 @@ export default async function HireSuccessPage({
   const p = await searchParams;
   const txRef = p.tx_ref ?? "";
   const transactionId = p.transaction_id ?? "";
-  const amount = Number(p.amount ?? 0);
+  const amount = parseNairaAmount(p.amount ?? 0);
+  const baseAmount = parseNairaAmount(p.base_amount);
+  const platformFee = parseNairaAmount(p.platform_fee);
+  const fallback = calculateTransactionBreakdown(amount / 1.1);
+  const displayBaseAmount = baseAmount > 0 ? baseAmount : fallback.baseAmount;
+  const displayPlatformFee =
+    platformFee > 0 ? platformFee : fallback.platformFee;
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -36,6 +46,18 @@ export default async function HireSuccessPage({
 
         {/* Receipt details */}
         <div className="rounded-2xl border bg-card p-5 text-sm space-y-3 mb-8 text-left">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Freelancer amount</span>
+            <span className="font-medium">
+              ₦{displayBaseAmount.toLocaleString("en-NG")}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Platform fee (10%)</span>
+            <span className="font-medium">
+              ₦{displayPlatformFee.toLocaleString("en-NG")}
+            </span>
+          </div>
           {txRef && (
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Reference</span>

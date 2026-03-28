@@ -3,6 +3,7 @@ import { ArrowLeft, ShieldCheck, Lock } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import PaymentCheckout from "./payment-checkout";
+import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
 
 export default async function HirePaymentPage({
   searchParams,
@@ -25,6 +26,8 @@ export default async function HirePaymentPage({
   const budget = p.budget ?? "0";
   const requirements = p.requirements ?? "";
   const freelancerId = p.freelancerId ?? "";
+  const { baseAmount, platformFee, totalAmount } =
+    calculateTransactionBreakdown(budget);
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -91,11 +94,23 @@ export default async function HirePaymentPage({
             {requirements && <Row label="Requirements" value={requirements} />}
           </div>
 
+          {/* Pricing */}
+          <div className="space-y-2 pt-3 border-t text-sm">
+            <Row
+              label="Freelancer amount"
+              value={`₦${baseAmount.toLocaleString("en-NG")}`}
+            />
+            <Row
+              label="Platform fee (10%)"
+              value={`₦${platformFee.toLocaleString("en-NG")}`}
+            />
+          </div>
+
           {/* Total */}
-          <div className="flex items-center justify-between pt-3 border-t">
-            <span className="font-bold text-base">Total</span>
+          <div className="flex items-center justify-between pt-2 border-t">
+            <span className="font-bold text-base">Total to pay</span>
             <span className="font-black text-xl text-primary">
-              ₦{Number(budget || 0).toLocaleString("en-NG")}
+              ₦{totalAmount.toLocaleString("en-NG")}
             </span>
           </div>
         </div>
