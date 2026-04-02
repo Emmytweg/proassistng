@@ -562,9 +562,21 @@ export default function AdminMessagesPage() {
                         if (!selected.email || !replyText.trim()) return;
                         setReplySending(true);
                         try {
+                          const supabase = getSupabaseBrowserClient();
+                          const {
+                            data: { session },
+                          } = await supabase.auth.getSession();
+
                           const res = await fetch("/api/send-reply", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: {
+                              "Content-Type": "application/json",
+                              ...(session?.access_token
+                                ? {
+                                    Authorization: `Bearer ${session.access_token}`,
+                                  }
+                                : {}),
+                            },
                             body: JSON.stringify({
                               to: selected.email,
                               toName: selected.name,

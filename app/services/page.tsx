@@ -1,12 +1,25 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import type { ServiceCategory } from "@/lib/services";
 import { serviceCategories } from "@/lib/services";
 
-function CategoryCard({ slug, title, description, imageUrl, icon: Icon }: ServiceCategory) {
-  
+export const metadata: Metadata = {
+  title: "Services",
+  description:
+    "Browse ProAssistNG service categories and find vetted Nigerian freelancers for your next project.",
+  alternates: { canonical: "/services" },
+};
+
+function CategoryCard({
+  slug,
+  title,
+  description,
+  imageUrl,
+  icon: Icon,
+}: ServiceCategory) {
   return (
     <Link
       href={`/services/${slug}`}
@@ -40,7 +53,7 @@ export default function ServicesPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-muted/30 text-foreground">
       {/* Navigation Bar */}
-     <Navbar />
+      <Navbar />
 
       <main className="w-full max-w-7xl flex-1 mx-auto px-6 py-12 pt-20">
         {/* Page Header */}
@@ -59,13 +72,15 @@ export default function ServicesPage() {
         </div>
 
         {/* Categories Grid */}
-        <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2  ${
-                 serviceCategories.length - 1 && serviceCategories.length % 2 !== 0
-                  ? "sm:col-span-2"
-                  : ""
-              } `}>
+        <div
+          className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2  ${
+            serviceCategories.length - 1 && serviceCategories.length % 2 !== 0
+              ? "sm:col-span-2"
+              : ""
+          } `}
+        >
           {serviceCategories.map((cat) => (
-            <CategoryCard key={cat.title} {...cat}  />
+            <CategoryCard key={cat.title} {...cat} />
           ))}
         </div>
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
+import { getClientIp, rateLimit } from "@/lib/security";
 
 // Escape HTML entities to prevent injection in email HTML body
 function esc(str: string): string {
@@ -14,6 +15,15 @@ function esc(str: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const throttle = rateLimit(`notify-hire:${ip}`, 20, 60_000);
+  if (!throttle.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429 },
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -47,6 +57,73 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Missing freelancerId." },
       { status: 400 },
+    );
+  }
+
+  if (!txRef) {
+    return NextResponse.json(
+      { error: "Missing payment reference." },
+      { status: 400 },
+    );
+  }
+
+  const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+  if (!paystackSecretKey) {
+    return NextResponse.json(
+      { error: "Payment verification is not configured." },
+      { status: 503 },
+    );
+  }
+
+  try {
+    const verifyRes = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(txRef)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${paystackSecretKey}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const verifyJson = (await verifyRes.json()) as {
+      status?: boolean;
+      data?: {
+        status?: string;
+        amount?: number;
+        currency?: string;
+        reference?: string;
+      };
+    };
+
+    const paidAmountKobo = Number(verifyJson.data?.amount ?? 0);
+    const paidCurrency = String(verifyJson.data?.currency ?? "");
+    const paidStatus = String(verifyJson.data?.status ?? "");
+    const paidRef = String(verifyJson.data?.reference ?? "");
+
+    if (
+      !verifyRes.ok ||
+      verifyJson.status !== true ||
+      paidStatus !== "success" ||
+      paidCurrency !== "NGN" ||
+      paidRef !== txRef
+    ) {
+      return NextResponse.json(
+        { error: "Payment verification failed." },
+        { status: 402 },
+      );
+    }
+
+    if (paidAmountKobo !== Math.round(amount * 100)) {
+      return NextResponse.json(
+        { error: "Amount mismatch during payment verification." },
+        { status: 400 },
+      );
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Could not verify payment." },
+      { status: 502 },
     );
   }
 

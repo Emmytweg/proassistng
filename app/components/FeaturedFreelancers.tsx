@@ -5,6 +5,7 @@ import { Crown, Star } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { formatFreelancerRate } from "@/lib/rate-format";
 
 type FreelancerCard = {
   id: string;
@@ -54,23 +55,11 @@ export default function FeaturedFreelancers() {
         if (data && data.length > 0) {
           setFreelancers(
             data.map((r: any) => {
-              const amt =
-                typeof r.hourly_rate === "number"
-                  ? `₦${r.hourly_rate.toLocaleString("en-NG")}`
-                  : null;
-              const suffix =
-                r.rate_type === "milestone"
-                  ? "/milestone"
-                  : r.rate_type === "monthly"
-                    ? "/month"
-                    : r.rate_type === "contract"
-                      ? " (contract)"
-                      : "/hr";
               return {
                 id: String(r.id),
                 name: String(r.full_name ?? "Unnamed"),
                 role: String(r.title ?? "Freelancer"),
-                price: amt ? `${amt}${suffix}` : "Contact for rate",
+                price: formatFreelancerRate(r.hourly_rate ?? null, r.rate_type),
                 image: r.photo_url ?? null,
                 skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
                 featured: !!r.featured,
@@ -300,7 +289,7 @@ export default function FeaturedFreelancers() {
                             "absolute right-4 top-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium " +
                             (isAvailable
                               ? "border-primary/30 bg-primary/10 text-primary"
-                              : "border-muted bg-muted text-muted-foreground")
+                              : "border-muted bg-muted text-foreground")
                           }
                           aria-label={
                             isAvailable ? "Available now" : "Currently busy"
@@ -389,12 +378,19 @@ export default function FeaturedFreelancers() {
                       type="button"
                       onClick={() => setActivePage(page)}
                       className={
-                        "h-2.5 rounded-full transition-all " +
-                        (isActive ? "w-8 bg-primary" : "w-2.5 bg-muted")
+                        "h-6 min-w-6 rounded-full transition-all flex items-center justify-center " +
+                        (isActive ? "w-8" : "w-6")
                       }
                       aria-label={`Go to page ${page + 1}`}
                       aria-current={isActive ? "true" : "false"}
-                    />
+                    >
+                      <span
+                        className={
+                          "h-2.5 rounded-full transition-all " +
+                          (isActive ? "w-8 bg-primary" : "w-2.5 bg-muted")
+                        }
+                      />
+                    </button>
                   );
                 })}
               </div>

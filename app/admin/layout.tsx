@@ -8,11 +8,14 @@ import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminMobileDock from "../components/admin/AdminMobileDock";
 import AdminAuthGate from "../components/admin/AdminAuthGate";
 
+const ADMIN_SIGNUP_ENABLED =
+  process.env.NEXT_PUBLIC_ADMIN_SIGNUP_ENABLED === "true";
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAuthPage =
     pathname?.startsWith("/admin/login") ||
-    pathname?.startsWith("/admin/signup");
+    (ADMIN_SIGNUP_ENABLED && pathname?.startsWith("/admin/signup"));
 
   if (isAuthPage) {
     return <div className="min-h-screen w-full">{children}</div>;

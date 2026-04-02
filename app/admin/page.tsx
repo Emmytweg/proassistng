@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { formatFreelancerRate } from "@/lib/rate-format";
 
 const ADMIN_TOAST_KEY = "proassist_admin_toast";
 
@@ -385,18 +386,6 @@ export default function AdminPage() {
 
         const mappedRecent: RecentFreelancer[] = (recentData ?? []).map(
           (r: any) => {
-            const amount =
-              typeof r.hourly_rate === "number"
-                ? `₦${r.hourly_rate.toLocaleString("en-NG")}`
-                : null;
-            const suffix =
-              r.rate_type === "monthly"
-                ? "/month"
-                : r.rate_type === "milestone"
-                  ? "/milestone"
-                  : r.rate_type === "contract"
-                    ? " (contract)"
-                    : "/hr";
             const status = String(r.status ?? "active").toLowerCase();
             const normalized: RecentFreelancer["status"] =
               status === "pending"
@@ -407,7 +396,10 @@ export default function AdminPage() {
             return {
               name: String(r.full_name ?? "Unnamed"),
               role: String(r.title ?? "—"),
-              rate: amount ? `${amount}${suffix}` : "—",
+              rate:
+                r.hourly_rate != null
+                  ? formatFreelancerRate(r.hourly_rate, r.rate_type)
+                  : "—",
               status: normalized,
             };
           },

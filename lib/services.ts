@@ -19,11 +19,11 @@ export type ServiceCategory = {
 };
 
 export const serviceCategories: ServiceCategory[] = [
- {
+  {
     slug: "content-writing",
-    title: "Creative Writing",
+    title: "Content Writing & Copywriting",
     description:
-      "Engage your audience with expertly crafted blog posts, website content, and long-form articles designed to boost SEO and drive conversions.",
+      "Hire Nigerian copywriters and content writers for blog posts, website content, product descriptions, and long-form articles designed to boost SEO and drive conversions.",
     imageUrl: "/creative-writing.jpg",
     icon: PenTool,
   },
@@ -31,15 +31,15 @@ export const serviceCategories: ServiceCategory[] = [
     slug: "web-development",
     title: "Web Development",
     description:
-      "Build high-performing websites, web apps, and e-commerce platforms with skilled developers focused on speed, security, and user experience.",
+      "Hire Nigerian website developers to build high-performing websites, web apps, and e-commerce platforms—focused on speed, security, and user experience.",
     imageUrl: "/web-dev.jpg",
     icon: Code2,
   },
   {
     slug: "graphic-deigner",
-    title: "Graphic Designers",
+    title: "Graphic Design",
     description:
-      "Enhance your brand with stunning graphics, logos, and visual assets created by professional graphic designers.",
+      "Hire graphic designers in Nigeria for logos, brand identity, social media designs, and marketing assets—crafted for modern brands.",
     imageUrl: "/graphics-designer.jpg",
     icon: Palette,
   },
@@ -47,7 +47,7 @@ export const serviceCategories: ServiceCategory[] = [
     slug: "ui-ux-design",
     title: "UI/UX Design",
     description:
-      "Transform your digital products with intuitive, user-friendly interfaces and exceptional user experiences crafted by expert designers.",
+      "Hire UI/UX designers in Nigeria to create intuitive interfaces, user flows, and product experiences for web and mobile apps.",
     imageUrl: "/ui-ux.jpg",
     icon: Palette,
   },
@@ -55,7 +55,7 @@ export const serviceCategories: ServiceCategory[] = [
     slug: "virtual-assistance",
     title: "Virtual Assistance",
     description:
-      "Streamline your workflow with reliable virtual assistants for admin tasks, research, scheduling, and inbox management.",
+      "Hire a virtual assistant in Nigeria for admin tasks, research, scheduling, customer support, and inbox management.",
     imageUrl: "/virtual-ass.jpg",
     icon: Headphones,
   },

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
@@ -39,12 +40,15 @@ export default function AdminLoginContent() {
 
   return (
     <div className="light relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden bg-background text-foreground antialiased selection:bg-primary/30">
-      <div className="w-full flex items-center justify-center flex-col max-w-[440px] z-10">
+      <div className="w-full flex items-center justify-center flex-col max-w-110 z-10">
         {/* Brand */}
-        <img
+        <Image
           src="/logo.png"
-          alt="ProAssist Logo"
+          alt="ProAssistNG"
+          width={224}
+          height={149}
           className="rounded-full h-28 mb-6 w-auto"
+          priority
         />
 
         {/* Card */}
@@ -233,7 +237,7 @@ export default function AdminLoginContent() {
         </div> */}
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-primary/20 to-transparent" />
     </div>
   );
 }

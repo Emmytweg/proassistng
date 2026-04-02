@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { formatFreelancerRate } from "@/lib/rate-format";
 
 type FreelancerRow = {
   id: string;
@@ -128,25 +129,16 @@ export default function FreelancersPage() {
         if (!active) return;
 
         const mapped: FreelancerRow[] = (data ?? []).map((r: any) => {
-          const amt =
-            typeof r.hourly_rate === "number"
-              ? `₦${r.hourly_rate.toLocaleString("en-NG")}`
-              : null;
-          const suffix =
-            r.rate_type === "milestone"
-              ? "/milestone"
-              : r.rate_type === "monthly"
-                ? "/month"
-                : r.rate_type === "contract"
-                  ? " (contract)"
-                  : "/hr";
           return {
             id: String(r.id),
             name: String(r.full_name ?? "Unnamed"),
             email: null,
             title: String(r.title ?? "—"),
             skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
-            rate: amt ? `${amt}${suffix}` : "—",
+            rate:
+              r.hourly_rate != null
+                ? formatFreelancerRate(r.hourly_rate, r.rate_type)
+                : "—",
             rateType: String(r.rate_type ?? "hourly"),
             featured: !!r.featured,
             dbStatus: String(r.status ?? "active"),

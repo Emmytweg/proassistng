@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
@@ -8,6 +9,8 @@ import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const ADMIN_TOAST_KEY = "proassist_admin_toast";
+const ADMIN_SIGNUP_ENABLED =
+  process.env.NEXT_PUBLIC_ADMIN_SIGNUP_ENABLED === "true";
 
 export default function AdminSignupContent() {
   const router = useRouter();
@@ -21,13 +24,37 @@ export default function AdminSignupContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (!ADMIN_SIGNUP_ENABLED) {
+    return (
+      <div className="light min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-xl w-full rounded-xl border bg-card p-6 text-sm">
+          <h2 className="text-lg font-semibold text-foreground mb-2">
+            Admin signup is disabled
+          </h2>
+          <p className="text-muted-foreground">
+            Contact the site owner to create an admin account securely.
+          </p>
+          <Link
+            href="/admin/login"
+            className="inline-flex mt-4 rounded-lg bg-primary px-4 py-2 text-primary-foreground font-semibold"
+          >
+            Go to admin login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="light relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden bg-background text-foreground antialiased selection:bg-primary/30">
       <div className="w-full max-w-110 flex flex-col items-center justify-center z-10">
-        <img
+        <Image
           src="/logo.png"
-          alt="ProAssist Logo"
+          alt="ProAssistNG"
+          width={224}
+          height={149}
           className="rounded-full h-28 mb-6 w-auto"
+          priority
         />
 
         <div className="bg-card rounded-xl shadow-2xl border border-border/50 overflow-hidden">
@@ -89,26 +116,20 @@ export default function AdminSignupContent() {
 
                     if (!sessionUser) return;
 
-                    // Register this user as admin (insert into allow-list)
-                    await supabase
-                      .from("admin_users")
-                      .insert({ user_id: sessionUser.id })
-                      .select()
-                      .maybeSingle(); // ignore conflict if already exists
-
                     try {
                       sessionStorage.setItem(
                         ADMIN_TOAST_KEY,
                         JSON.stringify({
                           title: "Account created",
-                          message: "Welcome! Your admin account is ready.",
+                          message:
+                            "Account created successfully. Admin access must be approved by the site owner.",
                         }),
                       );
                     } catch {
                       // ignore storage failures
                     }
 
-                    router.replace("/admin");
+                    router.replace("/admin/login");
                   } catch (err) {
                     setError(
                       err instanceof Error

@@ -1,8 +1,7 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import React, { useRef } from "react";
-import * as THREE from "three";
+import dynamic from "next/dynamic";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface DotGlobeHeroProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -10,39 +9,42 @@ interface DotGlobeHeroProps extends React.ComponentPropsWithoutRef<"div"> {
   globeRadius?: number;
 }
 
-const Globe: React.FC<{ rotationSpeed: number; radius: number }> = ({
-  rotationSpeed,
-  radius,
-}) => {
-  const groupRef = useRef<THREE.Group>(null!);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += rotationSpeed;
-      groupRef.current.rotation.x += rotationSpeed * 0.2;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <mesh>
-        <sphereGeometry args={[radius, 64, 64]} />
-        <meshBasicMaterial
-          color="hsl(var(--primary))"
-          transparent
-          opacity={0.15}
-          wireframe
-        />
-      </mesh>
-    </group>
-  );
+type GlobeCanvasProps = {
+  rotationSpeed: number;
+  radius: number;
 };
+
+const GlobeCanvas = dynamic<GlobeCanvasProps>(
+  () => import("./globe-canvas").then((mod) => mod.default),
+  { ssr: false },
+);
 
 const DotGlobeHero = React.forwardRef<HTMLDivElement, DotGlobeHeroProps>(
   (
     { rotationSpeed = 0.003, globeRadius = 1.2, className, children, ...props },
     ref,
   ) => {
+    const [showGlobe, setShowGlobe] = useState(false);
+
+    useEffect(() => {
+      const w = window as unknown as {
+        requestIdleCallback?: (cb: () => void) => number;
+        cancelIdleCallback?: (id: number) => void;
+      };
+
+      if (typeof w.requestIdleCallback === "function") {
+        const idleId = w.requestIdleCallback(() => setShowGlobe(true));
+        return () => {
+          if (typeof w.cancelIdleCallback === "function") {
+            w.cancelIdleCallback(idleId);
+          }
+        };
+      }
+
+      const timeoutId = window.setTimeout(() => setShowGlobe(true), 300);
+      return () => window.clearTimeout(timeoutId);
+    }, []);
+
     return (
       <div
         ref={ref}
@@ -58,13 +60,11 @@ const DotGlobeHero = React.forwardRef<HTMLDivElement, DotGlobeHeroProps>(
         </div>
 
         {/* 3D Globe */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
-            <ambientLight intensity={0.6} />
-            <pointLight position={[10, 10, 10]} />
-            <Globe rotationSpeed={rotationSpeed} radius={globeRadius} />
-          </Canvas>
-        </div>
+        {showGlobe && (
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <GlobeCanvas rotationSpeed={rotationSpeed} radius={globeRadius} />
+          </div>
+        )}
       </div>
     );
   },

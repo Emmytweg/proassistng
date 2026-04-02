@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+const ADMIN_SIGNUP_ENABLED =
+  process.env.NEXT_PUBLIC_ADMIN_SIGNUP_ENABLED === "true";
+
 export default function AdminAuthGate({
   children,
 }: {
@@ -34,7 +37,7 @@ export default function AdminAuthGate({
 
       const isPublicAuthPage =
         pathname?.startsWith("/admin/login") ||
-        pathname?.startsWith("/admin/signup");
+        (ADMIN_SIGNUP_ENABLED && pathname?.startsWith("/admin/signup"));
       if (!data.session && !isPublicAuthPage) {
         router.replace("/admin/login");
         return;
@@ -48,7 +51,7 @@ export default function AdminAuthGate({
     } = supabase.auth.onAuthStateChange((_event: unknown, session: unknown) => {
       const isPublicAuthPage =
         pathname?.startsWith("/admin/login") ||
-        pathname?.startsWith("/admin/signup");
+        (ADMIN_SIGNUP_ENABLED && pathname?.startsWith("/admin/signup"));
       if (!session && !isPublicAuthPage) {
         router.replace("/admin/login");
         return;

@@ -17,6 +17,11 @@ import { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
 import { Button } from "@/components/ui/button";
+import {
+  PRESET_RATE_TYPES,
+  getRateSuffix,
+  normalizeRateType,
+} from "@/lib/rate-format";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { serviceCategories } from "@/lib/services";
 
@@ -27,7 +32,8 @@ type ExperienceOption =
   | "5-8 years"
   | "8+ years";
 
-type RateType = "hourly" | "monthly" | "milestone" | "contract";
+type RateType = string;
+type PresetRateType = (typeof PRESET_RATE_TYPES)[number];
 
 const NIGERIAN_STATES = [
   "Abia",
@@ -69,13 +75,16 @@ const NIGERIAN_STATES = [
   "Zamfara",
 ];
 
-const RATE_TYPE_OPTIONS: { value: RateType; label: string; suffix: string }[] =
-  [
-    { value: "hourly", label: "Per Hour", suffix: "/hr" },
-    { value: "monthly", label: "Per Month", suffix: "/month" },
-    { value: "milestone", label: "Per Milestone", suffix: "/milestone" },
-    { value: "contract", label: "Contract Based", suffix: " (contract)" },
-  ];
+const RATE_TYPE_OPTIONS: {
+  value: PresetRateType;
+  label: string;
+  suffix: string;
+}[] = [
+  { value: "hourly", label: "Per Hour", suffix: "/hr" },
+  { value: "monthly", label: "Per Month", suffix: "/month" },
+  { value: "milestone", label: "Per Milestone", suffix: "/milestone" },
+  { value: "contract", label: "Contract Based", suffix: " (contract)" },
+];
 
 const EXPERIENCE_OPTIONS: ExperienceOption[] = [
   "",
@@ -176,17 +185,22 @@ function parseExperience(value: unknown): ExperienceOption | null {
 }
 
 function parseRateType(value: unknown): RateType | null {
-  const text = String(value ?? "")
-    .trim()
-    .toLowerCase();
+  const text = String(value ?? "").trim();
   if (!text) return null;
-  if (text.includes("month")) return "monthly";
-  if (text.includes("mile")) return "milestone";
-  if (text.includes("contract")) return "contract";
-  if (text.includes("hour") || text === "hr" || text === "hourly") {
+
+  const normalized = normalizeRateType(text);
+  if (normalized.includes("month")) return "monthly";
+  if (normalized.includes("mile")) return "milestone";
+  if (normalized.includes("contract")) return "contract";
+  if (
+    normalized.includes("hour") ||
+    normalized === "hr" ||
+    normalized === "hourly"
+  ) {
     return "hourly";
   }
-  return null;
+
+  return normalized;
 }
 
 function parseBoolean(value: unknown): boolean | null {
@@ -372,7 +386,7 @@ export type FreelancerInitialData = {
   location: string | null;
   experience: ExperienceOption;
   hourly_rate: number | null;
-  rate_type: RateType;
+  rate_type: string;
   portfolio_url: string | null;
   phone_number: string | null;
   bio: string | null;
@@ -410,7 +424,7 @@ export default function FreelancerForm({
     initialData?.hourly_rate != null ? String(initialData.hourly_rate) : "",
   );
   const [rateType, setRateType] = useState<RateType>(
-    initialData?.rate_type ?? "hourly",
+    normalizeRateType(initialData?.rate_type) || "hourly",
   );
   const [portfolio, setPortfolio] = useState(initialData?.portfolio_url ?? "");
   const [phone, setPhone] = useState(initialData?.phone_number ?? "");
@@ -602,7 +616,7 @@ export default function FreelancerForm({
                   location: location.trim() || null,
                   experience: experience || null,
                   hourly_rate: Number.isFinite(hourly) ? hourly : null,
-                  rate_type: rateType,
+                  rate_type: normalizeRateType(rateType) || "hourly",
                   portfolio_url: portfolio.trim() || null,
                   phone_number: phone.trim() || null,
                   bio: bio.trim() || null,
@@ -842,28 +856,36 @@ export default function FreelancerForm({
               </Field>
 
               <Field label="Payment Type">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {RATE_TYPE_OPTIONS.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setRateType(value)}
-                      className={
-                        "py-3 px-2 rounded-xl border text-sm font-semibold transition-colors " +
-                        (rateType === value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted/30 border-border text-foreground hover:border-primary/50")
-                      }
-                    >
-                      {label}
-                    </button>
-                  ))}
+                <div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {RATE_TYPE_OPTIONS.map(({ value, label }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setRateType(value)}
+                        className={
+                          "py-3 px-2 rounded-xl border text-sm font-semibold transition-colors " +
+                          (normalizeRateType(rateType) === value
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/30 border-border text-foreground hover:border-primary/50")
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <input
+                    value={rateType}
+                    onChange={(e) => setRateType(e.target.value)}
+                    className="mt-2 w-full rounded-xl border border-border bg-muted/30 px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder="Or type custom rate type (e.g. weekly, per sprint, daily)"
+                    type="text"
+                  />
                 </div>
               </Field>
 
-              <Field
-                label={`Rate (₦) ${RATE_TYPE_OPTIONS.find((o) => o.value === rateType)?.suffix ?? ""}`}
-              >
+              <Field label={`Rate (₦) ${getRateSuffix(rateType)}`}>
                 <InputShell icon={<span className="text-sm font-bold">₦</span>}>
                   <input
                     value={hourlyRate}

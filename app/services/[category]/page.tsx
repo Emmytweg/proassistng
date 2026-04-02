@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import Script from "next/script";
 
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
@@ -7,17 +9,54 @@ import TalentCard from "@/app/components/talent/TalentCard";
 import { getServiceCategory, serviceCategories } from "@/lib/services";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TalentCardProps } from "@/app/components/talent/TalentCard";
+import { formatFreelancerRate } from "@/lib/rate-format";
 
-function formatRate(
-  hourlyRate: number | null,
-  rateType: string | null,
-): string {
-  if (hourlyRate == null) return "Contact for rate";
-  const amt = `₦${hourlyRate.toLocaleString("en-NG")}`;
-  if (rateType === "monthly") return `${amt}/month`;
-  if (rateType === "milestone") return `${amt}/milestone`;
-  if (rateType === "contract") return `${amt} (contract)`;
-  return `${amt}/hr`;
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}): Promise<Metadata> {
+  const { category: rawCategory } = await params;
+  const slug = decodeURIComponent(rawCategory ?? "")
+    .trim()
+    .toLowerCase();
+
+  const category = getServiceCategory(slug);
+  const seoTitleBySlug: Record<string, string> = {
+    "virtual-assistance": "Hire a Virtual Assistant in Nigeria",
+    "web-development": "Hire Website Developers in Nigeria",
+    "content-writing": "Hire Copywriters in Nigeria",
+    "graphic-deigner": "Hire Graphic Designers in Nigeria",
+    "ui-ux-design": "Hire UI/UX Designers in Nigeria",
+  };
+
+  const seoDescriptionBySlug: Record<string, string> = {
+    "virtual-assistance":
+      "Hire a virtual assistant in Nigeria for admin support, scheduling, research, and inbox management. Browse vetted freelancers on ProAssistNG.",
+    "web-development":
+      "Hire Nigerian website developers for fast, secure websites and web apps. Browse vetted freelancers on ProAssistNG.",
+    "content-writing":
+      "Hire Nigerian copywriters and content writers for website copy, blog posts, and SEO content. Browse vetted freelancers on ProAssistNG.",
+    "graphic-deigner":
+      "Hire graphic designers in Nigeria for logos, brand identity, and social media designs. Browse vetted freelancers on ProAssistNG.",
+    "ui-ux-design":
+      "Hire UI/UX designers in Nigeria for web and mobile product design. Browse vetted freelancers on ProAssistNG.",
+  };
+
+  const title = seoTitleBySlug[slug] ?? (category ? `${category.title} in Nigeria` : "Services");
+  const description =
+    seoDescriptionBySlug[slug] ??
+    (category
+      ? `Browse vetted Nigerian freelancers for ${category.title.toLowerCase()} on ProAssistNG.`
+      : "Browse ProAssistNG service categories and find vetted Nigerian freelancers.");
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/services/${encodeURIComponent(slug)}`,
+    },
+  };
 }
 
 export function generateStaticParams() {
@@ -37,6 +76,51 @@ export default async function ServiceCategoryPage({
     .toLowerCase();
 
   const category = getServiceCategory(slug);
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+  const pageUrl = `${siteUrl}/services/${encodeURIComponent(slug)}`;
+  const jsonLd = category
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: siteUrl,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Services",
+                item: `${siteUrl}/services`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: category.title,
+                item: pageUrl,
+              },
+            ],
+          },
+          {
+            "@type": "CollectionPage",
+            name: `${category.title} in Nigeria`,
+            description: category.description,
+            url: pageUrl,
+            isPartOf: {
+              "@type": "WebSite",
+              url: siteUrl,
+              name: "ProAssistNG",
+            },
+          },
+        ],
+      }
+    : null;
 
   // Fetch active freelancers whose service_slugs array contains this slug
   let talents: TalentCardProps[] = [];
@@ -66,7 +150,7 @@ export default async function ServiceCategoryPage({
         name: String(r.full_name ?? "Unnamed"),
         role: String(r.title ?? "Freelancer"),
         status: "online" as const,
-        price: formatRate(r.hourly_rate, r.rate_type),
+        price: formatFreelancerRate(r.hourly_rate, r.rate_type),
         image: r.photo_url ?? null,
         rating: null,
         reviews: null,
@@ -85,6 +169,15 @@ export default async function ServiceCategoryPage({
   return (
     <main className="min-h-screen bg-muted/30">
       <Navbar />
+
+      {jsonLd ? (
+        <Script
+          id={`ld-service-${slug}`}
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      ) : null}
       {/* 
       {process.env.NODE_ENV === "development" && (
         <div className="mx-auto max-w-7xl px-6 pt-20 pb-0">

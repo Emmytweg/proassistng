@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getClientIp, rateLimit } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const throttle = rateLimit(`subscribe:${ip}`, 8, 60_000);
+  if (!throttle.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429 },
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const email =
     typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";

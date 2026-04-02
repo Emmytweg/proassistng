@@ -28,14 +28,8 @@ create policy "admin_users_select_own"
   to authenticated
   using (user_id = auth.uid());
 
--- Allow authenticated users to register themselves as admin.
--- The admin UI is already protected by session checks; this lets signup
--- self-insert into the allow-list without a service-role key.
-create policy "admin_users_insert_own"
-  on public.admin_users
-  for insert
-  to authenticated
-  with check (user_id = auth.uid());
+-- Never allow self-service admin assignment from the client.
+drop policy if exists "admin_users_insert_own" on public.admin_users;
 
 -- 3) Freelancers
 create table if not exists public.freelancers (
@@ -46,7 +40,7 @@ create table if not exists public.freelancers (
   experience text,
   status text not null default 'active',
   hourly_rate numeric,
-  rate_type text not null default 'hourly' check (rate_type in ('hourly', 'monthly', 'milestone', 'contract')),
+  rate_type text not null default 'hourly' check (char_length(btrim(rate_type)) > 0),
   portfolio_url text,
   bio text,
   skills text[] not null default '{}',
@@ -66,23 +60,30 @@ alter table public.freelancers add column if not exists rate_type text not null 
 alter table public.freelancers add column if not exists service_slugs text[] not null default '{}'::text[];
 alter table public.freelancers add column if not exists phone_number text;
 
--- Normalize historic/unknown values before adding strict check constraints.
+-- Normalize null/blank values before adding check constraints.
 update public.freelancers
 set rate_type = 'hourly'
 where rate_type is null
-  or rate_type not in ('hourly', 'monthly', 'milestone', 'contract');
+  or btrim(rate_type) = '';
+
+-- Remove old fixed-list constraint if present.
+alter table public.freelancers
+  drop constraint if exists freelancers_rate_type_check;
+
+alter table public.freelancers
+  drop constraint if exists freelancers_rate_type_allowed_check;
 
 do $$
 begin
   if not exists (
     select 1
     from pg_constraint
-    where conname = 'freelancers_rate_type_check'
+    where conname = 'freelancers_rate_type_allowed_check'
       and conrelid = 'public.freelancers'::regclass
   ) then
     alter table public.freelancers
-      add constraint freelancers_rate_type_check
-      check (rate_type in ('hourly', 'monthly', 'milestone', 'contract'));
+      add constraint freelancers_rate_type_allowed_check
+      check (char_length(btrim(rate_type)) > 0);
   end if;
 end
 $$;
@@ -198,28 +199,11 @@ alter default privileges in schema public
 grant usage, select on sequences to authenticated;
 
 -- Notes:
--- - Create at least one Supabase Auth user via the /admin/signup page.
---   The trigger below auto-registers every new auth user as admin.
---   No manual UUID copying needed.
-
--- Auto-register every new auth user as admin on signup
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.admin_users (user_id)
-  values (new.id)
-  on conflict (user_id) do nothing;
-  return new;
-end;
-$$;
+-- - Create initial admins manually in SQL as needed:
+--   insert into public.admin_users (user_id, role) values ('<auth-user-uuid>', 'admin');
 
 drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+drop function if exists public.handle_new_user();
 
 -- 7) Storage bucket for freelancer profile photos
 insert into storage.buckets (id, name, public)
@@ -233,17 +217,23 @@ create policy "freelancer_photos_public_read"
   using (bucket_id = 'freelancer-photos');
 
 -- Only admins can upload photos
--- Note: using auth.uid() IS NOT NULL (any authenticated user) instead of
--- public.is_admin() because cross-schema function calls are unreliable in
--- Supabase Storage's RLS evaluation context. The admin UI is already
--- protected by AdminAuthGate so only authenticated admins reach this path.
 create policy "freelancer_photos_admin_insert"
   on storage.objects for insert
   to authenticated
-  with check (bucket_id = 'freelancer-photos' and auth.uid() is not null);
+  with check (
+    bucket_id = 'freelancer-photos'
+    and exists (
+      select 1 from public.admin_users au where au.user_id = auth.uid()
+    )
+  );
 
 -- Only admins can delete photos
 create policy "freelancer_photos_admin_delete"
   on storage.objects for delete
   to authenticated
-  using (bucket_id = 'freelancer-photos' and auth.uid() is not null);
+  using (
+    bucket_id = 'freelancer-photos'
+    and exists (
+      select 1 from public.admin_users au where au.user_id = auth.uid()
+    )
+  );

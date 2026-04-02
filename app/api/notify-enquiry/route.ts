@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-
-function esc(str: string): string {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
-}
+import { esc, getClientIp, rateLimit } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const throttle = rateLimit(`notify-enquiry:${ip}`, 12, 60_000);
+  if (!throttle.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again shortly." },
+      { status: 429 },
+    );
+  }
+
   const body = await req.json().catch(() => null);
   if (!body)
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
@@ -21,6 +22,13 @@ export async function POST(req: NextRequest) {
     : undefined;
   const freelancerName = String(body.freelancerName ?? "").slice(0, 200);
   const messageBody = String(body.messageBody ?? "").slice(0, 5000);
+
+  if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+    return NextResponse.json(
+      { error: "Invalid sender email." },
+      { status: 400 },
+    );
+  }
 
   const GMAIL_USER = process.env.GMAIL_USER;
   const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;

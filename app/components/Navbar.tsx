@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Freelancers", href: "/browse-talents" },
@@ -12,20 +12,20 @@ const navLinks = [
   { name: "How It Works", href: "/how-it-works" },
   // { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
-]
+];
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const pathname = usePathname()
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <header
@@ -37,11 +37,20 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto pr-6">
         <div className="flex items-center justify-between h-18">
-
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-semibold text-lg tracking-tight">
-           <img src="/logo.png" alt="ProAssist Logo"  className="rounded-full h-full w-44 md:w-60" />
-           
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold text-lg tracking-tight"
+          >
+            <Image
+              src="/logo.png"
+              alt="ProAssistNG"
+              width={240}
+              height={160}
+              priority
+              sizes="(min-width: 768px) 240px, 176px"
+              className="rounded-full w-44 md:w-60 h-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -49,7 +58,7 @@ export default function Navbar() {
             {navLinks.map((link) => {
               const active =
                 pathname === link.href ||
-                (link.href !== "/" && pathname?.startsWith(`${link.href}/`))
+                (link.href !== "/" && pathname?.startsWith(`${link.href}/`));
 
               return (
                 <Link
@@ -60,13 +69,10 @@ export default function Navbar() {
                   {link.name}
 
                   {active && (
-                    <motion.span
-                      layoutId="navbar-indicator"
-                      className="absolute left-0 -bottom-1 h-0.5 w-full bg-green-600"
-                    />
+                    <span className="absolute left-0 -bottom-1 h-0.5 w-full bg-green-600" />
                   )}
                 </Link>
-              )
+              );
             })}
           </nav>
 
@@ -82,8 +88,12 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setOpen(!open)}
             className="md:hidden text-gray-800"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
           >
             {open ? <X size={26} /> : <Menu size={26} />}
           </button>
@@ -91,37 +101,29 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden bg-white border-t"
-          >
-            <div className="px-6 py-6 flex flex-col gap-5">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="text-lg font-medium text-gray-700"
-                >
-                  {link.name}
-                </Link>
-              ))}
-
+      {open && (
+        <div id="mobile-menu" className="md:hidden bg-white border-t">
+          <div className="px-6 py-6 flex flex-col gap-5">
+            {navLinks.map((link) => (
               <Link
-                href="/browse-talents"
-                className="bg-green-600 text-white text-center py-3 rounded-lg font-semibold"
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="text-lg font-medium text-gray-700"
               >
-                Browse Freelancers
+                {link.name}
               </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ))}
+
+            <Link
+              href="/browse-talents"
+              className="bg-green-600 text-white text-center py-3 rounded-lg font-semibold"
+            >
+              Browse Freelancers
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
-  )
+  );
 }

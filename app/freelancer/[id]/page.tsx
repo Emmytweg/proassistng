@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
+import Script from "next/script";
 import {
   BadgeCheck,
   MapPin,
@@ -17,8 +19,45 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { serviceCategories } from "@/lib/services";
+import { formatFreelancerRate } from "@/lib/rate-format";
 import ContactForm from "./contact-form";
 import HireFlow from "./hire-flow";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = getSupabaseServerClient();
+
+  const { data: r } = await supabase
+    .from("freelancers")
+    .select("id, full_name, title, bio")
+    .eq("id", id)
+    .eq("status", "active")
+    .single();
+
+  if (!r) {
+    return {
+      title: "Freelancer",
+      alternates: { canonical: `/freelancer/${encodeURIComponent(id)}` },
+    };
+  }
+
+  const name = String(r.full_name ?? "Freelancer");
+  const role = String(r.title ?? "Freelancer");
+  const bio = String(r.bio ?? "").trim();
+
+  return {
+    title: `${name} — ${role}`,
+    description:
+      bio.length > 0
+        ? bio.slice(0, 155)
+        : `View ${name}'s profile and hire on ProAssistNG.`,
+    alternates: { canonical: `/freelancer/${encodeURIComponent(id)}` },
+  };
+}
 
 function getInitials(name: string) {
   return name
@@ -27,18 +66,6 @@ function getInitials(name: string) {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
-}
-
-function formatRate(
-  hourlyRate: number | null,
-  rateType: string | null,
-): string {
-  if (hourlyRate == null) return "Contact for rate";
-  const amt = `₦${hourlyRate.toLocaleString("en-NG")}`;
-  if (rateType === "monthly") return `${amt}/month`;
-  if (rateType === "milestone") return `${amt}/milestone`;
-  if (rateType === "contract") return `${amt} (contract)`;
-  return `${amt}/hr`;
 }
 
 export const dynamic = "force-dynamic";
@@ -62,6 +89,53 @@ export default async function FreelancerProfilePage({
 
   if (error || !r) notFound();
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+  const pageUrl = `${siteUrl}/freelancer/${encodeURIComponent(id)}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: siteUrl,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Browse Freelancers",
+            item: `${siteUrl}/browse-talents`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: String(r.full_name ?? "Freelancer"),
+            item: pageUrl,
+          },
+        ],
+      },
+      {
+        "@type": "Person",
+        name: String(r.full_name ?? "Freelancer"),
+        jobTitle: String(r.title ?? "Freelancer"),
+        description: String(r.bio ?? "").trim() || undefined,
+        url: pageUrl,
+        image: r.photo_url ? String(r.photo_url) : undefined,
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "NG",
+          addressLocality: String(r.location ?? "Nigeria"),
+        },
+        sameAs: r.portfolio_url ? [String(r.portfolio_url)] : undefined,
+      },
+    ],
+  };
+
   const skills: string[] = Array.isArray(r.skills) ? r.skills.map(String) : [];
   const serviceSlugs: string[] = Array.isArray(r.service_slugs)
     ? r.service_slugs.map(String)
@@ -70,13 +144,19 @@ export default async function FreelancerProfilePage({
     serviceSlugs.includes(c.slug),
   );
 
-  const rate = formatRate(r.hourly_rate, r.rate_type);
+  const rate = formatFreelancerRate(r.hourly_rate, r.rate_type);
   const whatsappNumber = r.phone_number
     ? r.phone_number.replace(/\D/g, "").replace(/^0/, "234")
     : null;
 
   return (
     <main className="min-h-screen bg-muted/30">
+      <Script
+        id={`ld-freelancer-${id}`}
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
 
       <div className="mx-auto max-w-5xl px-4 py-10 pt-24 sm:px-6">

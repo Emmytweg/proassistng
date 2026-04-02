@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -131,9 +132,11 @@ export default function AdminSidebar() {
     <aside className="hidden md:flex w-64 bg-foreground text-background shrink-0 flex-col">
       <div className="p-6 flex items-center gap-3">
         <div className="min-w-0">
-          <img
+          <Image
             src="/logo.png"
-            alt="ProAssist Logo"
+            alt="ProAssistNG"
+            width={224}
+            height={149}
             className="rounded-full h-28 w-auto"
           />
         </div>
