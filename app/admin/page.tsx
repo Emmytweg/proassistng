@@ -310,7 +310,9 @@ export default function AdminPage() {
         // Recent freelancers can fail if the table lacks created_at/status yet.
         const recentPrimary = await supabase
           .from("freelancers")
-          .select("full_name, title, hourly_rate, rate_type, status, featured")
+          .select(
+            "full_name, title, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, status, featured",
+          )
           .order("created_at", { ascending: false })
           .limit(4);
 
@@ -320,7 +322,9 @@ export default function AdminPage() {
         if (recentError && isMissingColumnOrBadRequest(recentError)) {
           const recentFallback = await supabase
             .from("freelancers")
-            .select("full_name, title, hourly_rate, rate_type, featured")
+            .select(
+              "full_name, title, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, featured",
+            )
             .order("id", { ascending: false })
             .limit(4);
 
@@ -397,8 +401,14 @@ export default function AdminPage() {
               name: String(r.full_name ?? "Unnamed"),
               role: String(r.title ?? "—"),
               rate:
-                r.hourly_rate != null
-                  ? formatFreelancerRate(r.hourly_rate, r.rate_type)
+                r.hourly_rate != null ||
+                r.hourly_rate_min != null ||
+                r.hourly_rate_max != null
+                  ? formatFreelancerRate(
+                      r.hourly_rate_min ?? r.hourly_rate,
+                      r.rate_type,
+                      r.hourly_rate_max,
+                    )
                   : "—",
               status: normalized,
             };

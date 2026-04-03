@@ -45,7 +45,7 @@ export default function FeaturedFreelancers() {
         const { data } = await supabase
           .from("freelancers")
           .select(
-            "id, full_name, title, photo_url, skills, hourly_rate, rate_type, featured",
+            "id, full_name, title, photo_url, skills, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, featured",
           )
           .eq("status", "active")
           .order("featured", { ascending: false })
@@ -59,7 +59,11 @@ export default function FeaturedFreelancers() {
                 id: String(r.id),
                 name: String(r.full_name ?? "Unnamed"),
                 role: String(r.title ?? "Freelancer"),
-                price: formatFreelancerRate(r.hourly_rate ?? null, r.rate_type),
+                price: formatFreelancerRate(
+                  r.hourly_rate_min ?? r.hourly_rate ?? null,
+                  r.rate_type,
+                  r.hourly_rate_max,
+                ),
                 image: r.photo_url ?? null,
                 skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
                 featured: !!r.featured,

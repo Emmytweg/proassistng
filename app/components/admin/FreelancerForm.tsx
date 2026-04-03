@@ -100,6 +100,8 @@ type ImportFieldKey =
   | "location"
   | "experience"
   | "hourly_rate"
+  | "hourly_rate_min"
+  | "hourly_rate_max"
   | "rate_type"
   | "portfolio_url"
   | "phone_number"
@@ -127,6 +129,14 @@ const IMPORT_FIELD_ALIASES: Record<string, ImportFieldKey> = {
   rate: "hourly_rate",
   price: "hourly_rate",
   amount: "hourly_rate",
+  minimumrate: "hourly_rate_min",
+  minrate: "hourly_rate_min",
+  ratemin: "hourly_rate_min",
+  lowestprice: "hourly_rate_min",
+  maximumrate: "hourly_rate_max",
+  maxrate: "hourly_rate_max",
+  ratemax: "hourly_rate_max",
+  highestprice: "hourly_rate_max",
   ratetype: "rate_type",
   paymenttype: "rate_type",
   billingtype: "rate_type",
@@ -386,6 +396,8 @@ export type FreelancerInitialData = {
   location: string | null;
   experience: ExperienceOption;
   hourly_rate: number | null;
+  hourly_rate_min: number | null;
+  hourly_rate_max: number | null;
   rate_type: string;
   portfolio_url: string | null;
   phone_number: string | null;
@@ -422,6 +434,20 @@ export default function FreelancerForm({
   );
   const [hourlyRate, setRate] = useState(
     initialData?.hourly_rate != null ? String(initialData.hourly_rate) : "",
+  );
+  const [hourlyRateMin, setHourlyRateMin] = useState(
+    initialData?.hourly_rate_min != null
+      ? String(initialData.hourly_rate_min)
+      : initialData?.hourly_rate != null
+        ? String(initialData.hourly_rate)
+        : "",
+  );
+  const [hourlyRateMax, setHourlyRateMax] = useState(
+    initialData?.hourly_rate_max != null
+      ? String(initialData.hourly_rate_max)
+      : initialData?.hourly_rate != null
+        ? String(initialData.hourly_rate)
+        : "",
   );
   const [rateType, setRateType] = useState<RateType>(
     normalizeRateType(initialData?.rate_type) || "hourly",
@@ -490,6 +516,26 @@ export default function FreelancerForm({
           );
           if (!Number.isFinite(next)) break;
           setRate(String(next));
+          setHourlyRateMin(String(next));
+          setHourlyRateMax(String(next));
+          updated += 1;
+          break;
+        }
+        case "hourly_rate_min": {
+          const next = Number.parseFloat(
+            String(rawValue ?? "").replace(/,/g, ""),
+          );
+          if (!Number.isFinite(next)) break;
+          setHourlyRateMin(String(next));
+          updated += 1;
+          break;
+        }
+        case "hourly_rate_max": {
+          const next = Number.parseFloat(
+            String(rawValue ?? "").replace(/,/g, ""),
+          );
+          if (!Number.isFinite(next)) break;
+          setHourlyRateMax(String(next));
           updated += 1;
           break;
         }
@@ -610,12 +656,31 @@ export default function FreelancerForm({
                 }
 
                 const hourly = Number.parseFloat(hourlyRate);
+                const parsedMin = Number.parseFloat(hourlyRateMin);
+                const parsedMax = Number.parseFloat(hourlyRateMax);
+                const fallback = Number.isFinite(hourly) ? hourly : null;
+                const rawMin = Number.isFinite(parsedMin)
+                  ? parsedMin
+                  : fallback;
+                const rawMax = Number.isFinite(parsedMax)
+                  ? parsedMax
+                  : fallback;
+                const normalizedMin =
+                  rawMin != null && rawMax != null
+                    ? Math.min(rawMin, rawMax)
+                    : rawMin;
+                const normalizedMax =
+                  rawMin != null && rawMax != null
+                    ? Math.max(rawMin, rawMax)
+                    : rawMax;
                 const payload = {
                   full_name: fullName.trim() || "Unnamed",
                   title: title.trim() || null,
                   location: location.trim() || null,
                   experience: experience || null,
-                  hourly_rate: Number.isFinite(hourly) ? hourly : null,
+                  hourly_rate: normalizedMin,
+                  hourly_rate_min: normalizedMin,
+                  hourly_rate_max: normalizedMax,
                   rate_type: normalizeRateType(rateType) || "hourly",
                   portfolio_url: portfolio.trim() || null,
                   phone_number: phone.trim() || null,
@@ -885,16 +950,44 @@ export default function FreelancerForm({
                 </div>
               </Field>
 
-              <Field label={`Rate (₦) ${getRateSuffix(rateType)}`}>
-                <InputShell icon={<span className="text-sm font-bold">₦</span>}>
-                  <input
-                    value={hourlyRate}
-                    onChange={(e) => setRate(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-muted/30 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
-                    placeholder="e.g. 25000"
-                    inputMode="decimal"
-                  />
-                </InputShell>
+              <Field label={`Price Range (₦) ${getRateSuffix(rateType)}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InputShell
+                    icon={<span className="text-sm font-bold">₦</span>}
+                  >
+                    <input
+                      value={hourlyRateMin}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setHourlyRateMin(next);
+                        if (!hourlyRate) setRate(next);
+                      }}
+                      className="w-full pl-12 pr-4 py-3 bg-muted/30 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
+                      placeholder="Minimum (e.g. 25000)"
+                      inputMode="decimal"
+                    />
+                  </InputShell>
+
+                  <InputShell
+                    icon={<span className="text-sm font-bold">₦</span>}
+                  >
+                    <input
+                      value={hourlyRateMax}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setHourlyRateMax(next);
+                        if (!hourlyRate) setRate(next);
+                      }}
+                      className="w-full pl-12 pr-4 py-3 bg-muted/30 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
+                      placeholder="Maximum (e.g. 50000)"
+                      inputMode="decimal"
+                    />
+                  </InputShell>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  If you set both values, freelancer cards will show a range
+                  like “₦25,000 - ₦50,000{getRateSuffix(rateType)}”.
+                </p>
               </Field>
 
               <Field label="Portfolio Link">

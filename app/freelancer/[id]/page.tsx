@@ -81,7 +81,7 @@ export default async function FreelancerProfilePage({
   const { data: r, error } = await supabase
     .from("freelancers")
     .select(
-      "id, full_name, title, location, experience, hourly_rate, rate_type, portfolio_url, phone_number, bio, skills, service_slugs, featured, photo_url, status",
+      "id, full_name, title, location, experience, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, portfolio_url, phone_number, bio, skills, service_slugs, featured, photo_url, status",
     )
     .eq("id", id)
     .eq("status", "active")
@@ -144,7 +144,11 @@ export default async function FreelancerProfilePage({
     serviceSlugs.includes(c.slug),
   );
 
-  const rate = formatFreelancerRate(r.hourly_rate, r.rate_type);
+  const rate = formatFreelancerRate(
+    r.hourly_rate_min ?? r.hourly_rate,
+    r.rate_type,
+    r.hourly_rate_max,
+  );
   const whatsappNumber = r.phone_number
     ? r.phone_number.replace(/\D/g, "").replace(/^0/, "234")
     : null;

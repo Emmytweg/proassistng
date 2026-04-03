@@ -29,7 +29,7 @@ export default function EditFreelancerPage() {
         const { data: row, error: fetchError } = await supabase
           .from("freelancers")
           .select(
-            "full_name, title, location, experience, hourly_rate, rate_type, portfolio_url, phone_number, bio, skills, service_slugs, featured, photo_url, status",
+            "full_name, title, location, experience, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, portfolio_url, phone_number, bio, skills, service_slugs, featured, photo_url, status",
           )
           .eq("id", id)
           .single();
@@ -43,6 +43,8 @@ export default function EditFreelancerPage() {
           experience: (row.experience ??
             "") as FreelancerInitialData["experience"],
           hourly_rate: row.hourly_rate ?? null,
+          hourly_rate_min: row.hourly_rate_min ?? row.hourly_rate ?? null,
+          hourly_rate_max: row.hourly_rate_max ?? row.hourly_rate ?? null,
           rate_type: (row.rate_type ??
             "hourly") as FreelancerInitialData["rate_type"],
           portfolio_url: row.portfolio_url ?? null,

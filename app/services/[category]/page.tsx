@@ -43,7 +43,9 @@ export async function generateMetadata({
       "Hire UI/UX designers in Nigeria for web and mobile product design. Browse vetted freelancers on ProAssistNG.",
   };
 
-  const title = seoTitleBySlug[slug] ?? (category ? `${category.title} in Nigeria` : "Services");
+  const title =
+    seoTitleBySlug[slug] ??
+    (category ? `${category.title} in Nigeria` : "Services");
   const description =
     seoDescriptionBySlug[slug] ??
     (category
@@ -130,7 +132,7 @@ export default async function ServiceCategoryPage({
   const { data, error } = await supabase
     .from("freelancers")
     .select(
-      "id, full_name, title, location, hourly_rate, rate_type, bio, skills, featured, photo_url",
+      "id, full_name, title, location, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, bio, skills, featured, photo_url",
     )
     .eq("status", "active")
     .contains("service_slugs", [slug])
@@ -150,7 +152,11 @@ export default async function ServiceCategoryPage({
         name: String(r.full_name ?? "Unnamed"),
         role: String(r.title ?? "Freelancer"),
         status: "online" as const,
-        price: formatFreelancerRate(r.hourly_rate, r.rate_type),
+        price: formatFreelancerRate(
+          r.hourly_rate_min ?? r.hourly_rate,
+          r.rate_type,
+          r.hourly_rate_max,
+        ),
         image: r.photo_url ?? null,
         rating: null,
         reviews: null,

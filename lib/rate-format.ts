@@ -29,9 +29,33 @@ export function getRateSuffix(rateType: string | null | undefined): string {
 }
 
 export function formatFreelancerRate(
-  hourlyRate: number | null,
+  minRate: number | null,
   rateType: string | null | undefined,
+  maxRate?: number | null,
 ): string {
-  if (hourlyRate == null) return "Contact for rate";
-  return `₦${hourlyRate.toLocaleString("en-NG")}${getRateSuffix(rateType)}`;
+  const safeMin =
+    typeof minRate === "number" && Number.isFinite(minRate) ? minRate : null;
+  const safeMax =
+    typeof maxRate === "number" && Number.isFinite(maxRate) ? maxRate : null;
+
+  if (safeMin == null && safeMax == null) return "Contact for rate";
+
+  const low =
+    safeMin == null
+      ? (safeMax as number)
+      : safeMax == null
+        ? safeMin
+        : Math.min(safeMin, safeMax);
+  const high =
+    safeMin == null
+      ? null
+      : safeMax == null
+        ? null
+        : Math.max(safeMin, safeMax);
+
+  if (high == null || low === high) {
+    return `₦${low.toLocaleString("en-NG")}${getRateSuffix(rateType)}`;
+  }
+
+  return `₦${low.toLocaleString("en-NG")} - ₦${high.toLocaleString("en-NG")}${getRateSuffix(rateType)}`;
 }

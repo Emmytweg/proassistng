@@ -121,7 +121,7 @@ export default function FreelancersPage() {
         const { data, error } = await supabase
           .from("freelancers")
           .select(
-            "id, full_name, title, skills, hourly_rate, rate_type, featured, status, created_at",
+            "id, full_name, title, skills, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, featured, status, created_at",
           )
           .order("created_at", { ascending: false });
 
@@ -136,8 +136,14 @@ export default function FreelancersPage() {
             title: String(r.title ?? "—"),
             skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
             rate:
-              r.hourly_rate != null
-                ? formatFreelancerRate(r.hourly_rate, r.rate_type)
+              r.hourly_rate != null ||
+              r.hourly_rate_min != null ||
+              r.hourly_rate_max != null
+                ? formatFreelancerRate(
+                    r.hourly_rate_min ?? r.hourly_rate,
+                    r.rate_type,
+                    r.hourly_rate_max,
+                  )
                 : "—",
             rateType: String(r.rate_type ?? "hourly"),
             featured: !!r.featured,

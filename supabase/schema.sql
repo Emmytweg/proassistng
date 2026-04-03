@@ -40,6 +40,8 @@ create table if not exists public.freelancers (
   experience text,
   status text not null default 'active',
   hourly_rate numeric,
+  hourly_rate_min numeric,
+  hourly_rate_max numeric,
   rate_type text not null default 'hourly' check (char_length(btrim(rate_type)) > 0),
   portfolio_url text,
   bio text,
@@ -56,9 +58,22 @@ alter table public.freelancers add column if not exists created_at timestamptz n
 alter table public.freelancers add column if not exists updated_at timestamptz not null default now();
 alter table public.freelancers add column if not exists featured boolean not null default false;
 alter table public.freelancers add column if not exists hourly_rate numeric;
+alter table public.freelancers add column if not exists hourly_rate_min numeric;
+alter table public.freelancers add column if not exists hourly_rate_max numeric;
 alter table public.freelancers add column if not exists rate_type text not null default 'hourly';
 alter table public.freelancers add column if not exists service_slugs text[] not null default '{}'::text[];
 alter table public.freelancers add column if not exists phone_number text;
+
+-- Backfill range columns from legacy hourly_rate where needed.
+update public.freelancers
+set hourly_rate_min = hourly_rate
+where hourly_rate_min is null
+  and hourly_rate is not null;
+
+update public.freelancers
+set hourly_rate_max = hourly_rate
+where hourly_rate_max is null
+  and hourly_rate is not null;
 
 -- Normalize null/blank values before adding check constraints.
 update public.freelancers
@@ -84,6 +99,28 @@ begin
     alter table public.freelancers
       add constraint freelancers_rate_type_allowed_check
       check (char_length(btrim(rate_type)) > 0);
+  end if;
+end
+$$;
+
+alter table public.freelancers
+  drop constraint if exists freelancers_hourly_rate_range_check;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'freelancers_hourly_rate_range_check'
+      and conrelid = 'public.freelancers'::regclass
+  ) then
+    alter table public.freelancers
+      add constraint freelancers_hourly_rate_range_check
+      check (
+        hourly_rate_min is null
+        or hourly_rate_max is null
+        or hourly_rate_min <= hourly_rate_max
+      );
   end if;
 end
 $$;

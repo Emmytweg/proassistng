@@ -94,7 +94,7 @@ export default function BrowseTalentsContent() {
         const { data, error } = await supabase
           .from("freelancers")
           .select(
-            "id, full_name, title, location, experience, hourly_rate, rate_type, bio, skills, featured, photo_url, status",
+            "id, full_name, title, location, experience, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, bio, skills, featured, photo_url, status",
           )
           .eq("status", "active")
           .order("featured", { ascending: false })
@@ -109,14 +109,19 @@ export default function BrowseTalentsContent() {
             : [];
           const title = String(r.title ?? "Freelancer");
           const hourlyRate =
-            typeof r.hourly_rate === "number" ? r.hourly_rate : 0;
+            typeof r.hourly_rate_min === "number"
+              ? r.hourly_rate_min
+              : typeof r.hourly_rate === "number"
+                ? r.hourly_rate
+                : 0;
           return {
             id: String(r.id),
             name: String(r.full_name ?? "Freelancer"),
             role: title,
             price: formatFreelancerRate(
-              r.hourly_rate ?? null,
+              r.hourly_rate_min ?? r.hourly_rate ?? null,
               r.rate_type ?? null,
+              r.hourly_rate_max,
             ),
             image: r.photo_url ?? undefined,
             rating: null,
