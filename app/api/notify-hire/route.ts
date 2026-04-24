@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
-import { getClientIp, rateLimit } from "@/lib/security";
+import {
+  acquireIdempotencyLock,
+  getClientIp,
+  hasProcessedIdempotency,
+  markProcessedIdempotency,
+  rateLimit,
+  releaseIdempotencyLock,
+} from "@/lib/security";
 
 // Escape HTML entities to prevent injection in email HTML body
 function esc(str: string): string {
@@ -16,7 +23,7 @@ function esc(str: string): string {
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const throttle = rateLimit(`notify-hire:${ip}`, 20, 60_000);
+  const throttle = await rateLimit(`notify-hire:${ip}`, 20, 60_000);
   if (!throttle.ok) {
     return NextResponse.json(
       { error: "Too many requests. Please try again shortly." },
@@ -93,6 +100,7 @@ export async function POST(req: NextRequest) {
         amount?: number;
         currency?: string;
         reference?: string;
+        customer?: { email?: string };
       };
     };
 
@@ -100,6 +108,9 @@ export async function POST(req: NextRequest) {
     const paidCurrency = String(verifyJson.data?.currency ?? "");
     const paidStatus = String(verifyJson.data?.status ?? "");
     const paidRef = String(verifyJson.data?.reference ?? "");
+    const paidCustomerEmail = String(
+      verifyJson.data?.customer?.email ?? "",
+    ).toLowerCase();
 
     if (
       !verifyRes.ok ||
@@ -120,6 +131,17 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+
+    if (
+      clientEmail &&
+      paidCustomerEmail &&
+      clientEmail.toLowerCase() !== paidCustomerEmail
+    ) {
+      return NextResponse.json(
+        { error: "Payer email mismatch during payment verification." },
+        { status: 400 },
+      );
+    }
   } catch {
     return NextResponse.json(
       { error: "Could not verify payment." },
@@ -127,87 +149,112 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── 1. Insert into admin messages (Supabase) ──────────────────────────────
+  const idempotencyKey = `notify-hire:${txRef}`;
+  const alreadyProcessed = await hasProcessedIdempotency(idempotencyKey);
+  if (alreadyProcessed) {
+    return NextResponse.json({ ok: true, duplicate: true });
+  }
+
+  const lockAcquired = await acquireIdempotencyLock(idempotencyKey, 120);
+  if (!lockAcquired) {
+    const processedAfterLockAttempt =
+      await hasProcessedIdempotency(idempotencyKey);
+    if (processedAfterLockAttempt) {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          "This payment notification is already being processed. Please retry shortly.",
+      },
+      { status: 409 },
+    );
+  }
+
   try {
-    const supabase = getSupabaseServerClient();
-    await supabase.from("messages").insert({
-      sender_name: clientName,
-      sender_email: clientEmail || null,
-      subject: `🤝 Hire request: "${projectTitle}" for ${freelancerName}`,
-      body: [
-        `New hire request received on ProAssistNG.`,
-        ``,
-        `Freelancer: ${freelancerName}`,
-        `Client: ${clientName}${clientEmail ? ` <${clientEmail}>` : ""}`,
-        ``,
-        `Project: ${projectTitle}`,
-        `Category: ${category}`,
-        `Description: ${description}`,
-        ``,
-        `Start: ${startDate}  |  Duration: ${duration}  |  Hours: ${commitment}`,
-        requirements ? `Requirements: ${requirements}` : "",
-        ``,
-        `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
-        `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
-        `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
-        ``,
-        txRef ? `Paystack Ref: ${txRef}` : "",
-        transactionId ? `Transaction ID: ${transactionId}` : "",
-      ]
-        .filter((l) => l !== "")
-        .join("\n"),
-      user_ref: freelancerId,
-      unread: true,
-      status: "open",
+    // ── 1. Insert into admin messages (Supabase) ────────────────────────────
+    try {
+      const supabase = getSupabaseServerClient();
+      await supabase.from("messages").insert({
+        sender_name: clientName,
+        sender_email: clientEmail || null,
+        subject: `🤝 Hire request: "${projectTitle}" for ${freelancerName}`,
+        body: [
+          `New hire request received on ProAssistNG.`,
+          ``,
+          `Freelancer: ${freelancerName}`,
+          `Client: ${clientName}${clientEmail ? ` <${clientEmail}>` : ""}`,
+          ``,
+          `Project: ${projectTitle}`,
+          `Category: ${category}`,
+          `Description: ${description}`,
+          ``,
+          `Start: ${startDate}  |  Duration: ${duration}  |  Hours: ${commitment}`,
+          requirements ? `Requirements: ${requirements}` : "",
+          ``,
+          `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
+          `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+          `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
+          ``,
+          txRef ? `Paystack Ref: ${txRef}` : "",
+          transactionId ? `Transaction ID: ${transactionId}` : "",
+        ]
+          .filter((l) => l !== "")
+          .join("\n"),
+        user_ref: freelancerId,
+        unread: true,
+        status: "open",
+      });
+    } catch {
+      // DB failure is non-critical — still attempt email
+    }
+
+    // ── 2. Send Gmail notification ──────────────────────────────────────────
+    const GMAIL_USER = process.env.GMAIL_USER;
+    const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+
+    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+      await markProcessedIdempotency(idempotencyKey, 60 * 60 * 24 * 30);
+      return NextResponse.json({ ok: true, skipped: "email" });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
-  } catch {
-    // DB failure is non-critical — still attempt email
-  }
 
-  // ── 2. Send Gmail notification ────────────────────────────────────────────
-  const GMAIL_USER = process.env.GMAIL_USER;
-  const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-    return NextResponse.json({ ok: true, skipped: "email" });
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-  });
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-
-  await transporter
-    .sendMail({
-      from: `"ProAssistNG" <${GMAIL_USER}>`,
-      to: GMAIL_USER,
-      subject: `💼 New hire request — ${esc(projectTitle)} (₦${amount.toLocaleString("en-NG")})`,
-      text: [
-        `New hire request on ProAssistNG.`,
-        ``,
-        `Freelancer: ${freelancerName}`,
-        `Client: ${clientName}${clientEmail ? ` <${clientEmail}>` : ""}`,
-        ``,
-        `Project: ${projectTitle}`,
-        `Category: ${category}`,
-        `Description: ${description}`,
-        ``,
-        `Start: ${startDate} | Duration: ${duration} | Hours: ${commitment}`,
-        requirements ? `Requirements: ${requirements}` : "",
-        ``,
-        `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
-        `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
-        `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
-        txRef ? `Paystack Ref: ${txRef}` : "",
-        transactionId ? `Transaction ID: ${transactionId}` : "",
-        ``,
-        `View in admin: ${siteUrl}/admin/messages`,
-      ]
-        .filter((l) => l !== "")
-        .join("\n"),
-      html: `
+    await transporter
+      .sendMail({
+        from: `"ProAssistNG" <${GMAIL_USER}>`,
+        to: GMAIL_USER,
+        subject: `💼 New hire request — ${esc(projectTitle)} (₦${amount.toLocaleString("en-NG")})`,
+        text: [
+          `New hire request on ProAssistNG.`,
+          ``,
+          `Freelancer: ${freelancerName}`,
+          `Client: ${clientName}${clientEmail ? ` <${clientEmail}>` : ""}`,
+          ``,
+          `Project: ${projectTitle}`,
+          `Category: ${category}`,
+          `Description: ${description}`,
+          ``,
+          `Start: ${startDate} | Duration: ${duration} | Hours: ${commitment}`,
+          requirements ? `Requirements: ${requirements}` : "",
+          ``,
+          `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
+          `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+          `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
+          txRef ? `Paystack Ref: ${txRef}` : "",
+          transactionId ? `Transaction ID: ${transactionId}` : "",
+          ``,
+          `View in admin: ${siteUrl}/admin/messages`,
+        ]
+          .filter((l) => l !== "")
+          .join("\n"),
+        html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111">
         <h2 style="margin:0 0 4px">💼 New Hire Request</h2>
         <p style="margin:0 0 20px;color:#6b7280;font-size:14px">Received on ProAssistNG</p>
@@ -247,10 +294,14 @@ export async function POST(req: NextRequest) {
         </a>
         <p style="margin-top:24px;font-size:11px;color:#9ca3af">This is an automated notification from ProAssistNG.</p>
       </div>`,
-    })
-    .catch(() => {
-      // Email failure is non-critical
-    });
+      })
+      .catch(() => {
+        // Email failure is non-critical
+      });
 
-  return NextResponse.json({ ok: true });
+    await markProcessedIdempotency(idempotencyKey, 60 * 60 * 24 * 30);
+    return NextResponse.json({ ok: true });
+  } finally {
+    await releaseIdempotencyLock(idempotencyKey);
+  }
 }

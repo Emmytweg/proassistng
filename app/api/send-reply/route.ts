@@ -9,7 +9,7 @@ import {
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const throttle = rateLimit(`send-reply:${ip}`, 10, 60_000);
+  const throttle = await rateLimit(`send-reply:${ip}`, 10, 60_000);
   if (!throttle.ok) {
     return NextResponse.json(
       { error: "Too many requests. Please try again shortly." },

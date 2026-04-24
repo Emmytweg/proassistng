@@ -7,6 +7,11 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import {
+  ADMIN_ALLOWED_EMAIL,
+  isAllowedAdminEmail,
+  normalizeEmail,
+} from "@/lib/admin-auth";
 
 const ADMIN_TOAST_KEY = "proassist_admin_toast";
 const ADMIN_SIGNUP_ENABLED =
@@ -75,6 +80,15 @@ export default function AdminSignupContent() {
                   setError(null);
 
                   try {
+                    const emailNormalized = normalizeEmail(email);
+
+                    if (!isAllowedAdminEmail(emailNormalized)) {
+                      setError(
+                        `Only ${ADMIN_ALLOWED_EMAIL} is allowed to sign up as an admin.`,
+                      );
+                      return;
+                    }
+
                     if (password !== confirmPassword) {
                       setError("Passwords do not match.");
                       return;
@@ -83,7 +97,7 @@ export default function AdminSignupContent() {
                     const supabase = getSupabaseBrowserClient();
                     const { data: signUpData, error: signUpError } =
                       await supabase.auth.signUp({
-                        email,
+                        email: emailNormalized,
                         password,
                       });
 
@@ -99,7 +113,7 @@ export default function AdminSignupContent() {
                         if (!signUpData.session) {
                           const { data: signInData, error: signInError } =
                             await supabase.auth.signInWithPassword({
-                              email,
+                              email: emailNormalized,
                               password,
                             });
 

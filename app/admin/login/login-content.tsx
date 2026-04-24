@@ -7,6 +7,11 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import {
+  ADMIN_ALLOWED_EMAIL,
+  isAllowedAdminEmail,
+  normalizeEmail,
+} from "@/lib/admin-auth";
 
 function BrandMark() {
   return (
@@ -69,9 +74,17 @@ export default function AdminLoginContent() {
                   setSubmitting(true);
                   setError(null);
                   try {
+                    const emailNormalized = normalizeEmail(email);
+                    if (!isAllowedAdminEmail(emailNormalized)) {
+                      setError(
+                        `Only ${ADMIN_ALLOWED_EMAIL} is allowed to log in as an admin.`,
+                      );
+                      return;
+                    }
+
                     const supabase = getSupabaseBrowserClient();
                     const { error } = await supabase.auth.signInWithPassword({
-                      email,
+                      email: emailNormalized,
                       password,
                     });
 

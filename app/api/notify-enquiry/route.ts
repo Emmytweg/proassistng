@@ -4,7 +4,7 @@ import { esc, getClientIp, rateLimit } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const throttle = rateLimit(`notify-enquiry:${ip}`, 12, 60_000);
+  const throttle = await rateLimit(`notify-enquiry:${ip}`, 12, 60_000);
   if (!throttle.ok) {
     return NextResponse.json(
       { error: "Too many requests. Please try again shortly." },

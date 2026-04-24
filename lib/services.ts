@@ -1,12 +1,8 @@
 import {
-  BarChart3,
   Code2,
-  FileText,
   Headphones,
-  Megaphone,
   Palette,
   PenTool,
-  SpellCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
