@@ -101,7 +101,7 @@ export default async function HirePaymentPage({
               value={`₦${baseAmount.toLocaleString("en-NG")}`}
             />
             <Row
-              label="Platform fee (10%)"
+              label="Platform fee (5%)"
               value={`₦${platformFee.toLocaleString("en-NG")}`}
             />
           </div>

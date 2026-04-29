@@ -147,6 +147,21 @@ export default function ContactContent() {
                       subject,
                       body: message.trim(),
                     });
+
+                    // Fire and forget email notification
+                    if (!error) {
+                      fetch("/api/notify-contact", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          senderName: fullName.trim(),
+                          senderEmail: email.trim() || undefined,
+                          subject,
+                          messageBody: message.trim(),
+                        }),
+                      }).catch(() => {});
+                    }
+
                     setLoading(false);
                     if (error) {
                       setToast({

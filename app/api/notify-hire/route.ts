@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
           requirements ? `Requirements: ${requirements}` : "",
           ``,
           `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
-          `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+          `Platform Fee (5%): ₦${platformFee.toLocaleString("en-NG")}`,
           `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
           ``,
           txRef ? `Paystack Ref: ${txRef}` : "",
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
           requirements ? `Requirements: ${requirements}` : "",
           ``,
           `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
-          `Platform Fee (10%): ₦${platformFee.toLocaleString("en-NG")}`,
+          `Platform Fee (5%): ₦${platformFee.toLocaleString("en-NG")}`,
           `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
           txRef ? `Paystack Ref: ${txRef}` : "",
           transactionId ? `Transaction ID: ${transactionId}` : "",
@@ -275,7 +275,7 @@ export async function POST(req: NextRequest) {
         <div style="background:#111;color:#fff;border-radius:12px;padding:16px 20px;text-align:center;margin-bottom:20px">
           <p style="margin:0;font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Total Paid</p>
           <p style="margin:4px 0 0;font-size:28px;font-weight:900">₦${amount.toLocaleString("en-NG")}</p>
-          <p style="margin:8px 0 0;font-size:12px;opacity:0.8">Freelancer: ₦${baseAmount.toLocaleString("en-NG")} · Fee (10%): ₦${platformFee.toLocaleString("en-NG")}</p>
+          <p style="margin:8px 0 0;font-size:12px;opacity:0.8">Freelancer: ₦${baseAmount.toLocaleString("en-NG")} · Fee (5%): ₦${platformFee.toLocaleString("en-NG")}</p>
         </div>
 
         ${

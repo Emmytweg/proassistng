@@ -1,4 +1,4 @@
-export const PLATFORM_FEE_RATE = 0.1;
+export const PLATFORM_FEE_RATE = 0.05;
 
 function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;

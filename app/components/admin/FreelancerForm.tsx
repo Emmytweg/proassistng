@@ -963,7 +963,7 @@ export default function FreelancerForm({
                         if (!hourlyRate) setRate(next);
                       }}
                       className="w-full pl-12 pr-4 py-3 bg-muted/30 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
-                      placeholder="Minimum (e.g. 25000)"
+                      placeholder="Minimum (e.g. 1000)"
                       inputMode="decimal"
                     />
                   </InputShell>
@@ -986,7 +986,7 @@ export default function FreelancerForm({
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   If you set both values, freelancer cards will show a range
-                  like “₦25,000 - ₦50,000{getRateSuffix(rateType)}”.
+                  like “₦1,000 - ₦50,000{getRateSuffix(rateType)}”.
                 </p>
               </Field>
 

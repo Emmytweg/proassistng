@@ -53,7 +53,7 @@ export default async function HireSuccessPage({
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Platform fee (10%)</span>
+            <span className="text-muted-foreground">Platform fee (5%)</span>
             <span className="font-medium">
               ₦{displayPlatformFee.toLocaleString("en-NG")}
             </span>

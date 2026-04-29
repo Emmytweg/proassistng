@@ -376,7 +376,7 @@ function Step3({
           />
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Enter the freelancer amount. A 10% platform fee is added at checkout.
+          Enter the freelancer amount. A 5% platform fee is added at checkout.
         </p>
       </div>
       <div>

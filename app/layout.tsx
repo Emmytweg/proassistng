@@ -16,6 +16,10 @@ const DEFAULT_DESCRIPTION =
   "ProAssistNG is a production-ready freelance marketplace connecting clients with vetted Nigerian professionals.";
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/logo.png",
+   
+  },
   metadataBase: new URL(SITE_URL),
   title: {
     default: DEFAULT_TITLE,
@@ -31,6 +35,12 @@ export const metadata: Metadata = {
     "content writer Nigeria",
     "website developer Nigeria",
     "web developer Nigeria",
+    "graphic designer Nigeria",
+    "digital marketer Nigeria",
+    "social media manager Nigeria",
+    "SEO specialist Nigeria",
+    "freelance marketplace Nigeria",
+    
   ],
   applicationName: SITE_NAME,
   alternates: {
