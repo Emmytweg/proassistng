@@ -6,6 +6,7 @@ import HowItWorks from "./components/HowItWorks";
 import WhyChoose from "./components/WhyChoose";
 import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
+import HelpSection from "./components/HelpSection";
 
 import type { Metadata } from "next";
 
@@ -28,6 +29,7 @@ export default function Home() {
         <Services />
         <HowItWorks />
         <WhyChoose />
+        <HelpSection />
         <CTASection />
       </main>
       <Footer />

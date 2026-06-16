@@ -1,0 +1,396 @@
+{
+  "platform": {
+    "name": "ProAssistNG",
+    "tagline": "Hire Vetted Nigerian Freelancers",
+    "simple_description": "An online marketplace where you can find and hire skilled Nigerian professionals to help with your projects.",
+    "website": "https://www.proassistng.com.ng",
+    "what_it_does": "Connects people who need work done with professionals who can do it - quickly, safely, and easily."
+  },
+  "for_absolute_beginners": {
+    "what_is_this": "Think of ProAssistNG like a digital job board or marketplace. You can hire skilled workers for specific projects.",
+    "why_use_it": [
+      "Find skilled professionals fast",
+      "All professionals are checked and trusted",
+      "Pay securely through Paystack",
+      "Hire without creating an account",
+      "Direct communication with your hired professional",
+      "Real-time support available on WhatsApp if you have questions"
+    ],
+    "common_uses": [
+      "Build a website",
+      "Design a logo or graphics",
+      "Write blog posts or articles",
+      "Manage social media",
+      "Create mobile apps",
+      "Handle administrative tasks",
+      "Provide virtual assistance",
+      "Marketing and SEO services"
+    ]
+  },
+  "user_types": {
+    "you_as_a_client": {
+      "who_you_are": "Someone who needs work done",
+      "example": "You own a small business and need a website built",
+      "what_you_do": [
+        "Step 1: Browse freelancers on the platform",
+        "Step 2: Find someone whose skills match your need",
+        "Step 3: Click 'Hire' and describe your project",
+        "Step 4: Pay them through Paystack",
+        "Step 5: They start working on your project",
+        "Step 6: You communicate with them as needed"
+      ],
+      "benefits": [
+        "No account needed to start browsing",
+        "Quick hiring process",
+        "Can message freelancer before hiring",
+        "Secure payments",
+        "Can hire for one-time projects or ongoing work"
+      ]
+    },
+    "freelancers": {
+      "who_they_are": "Skilled professionals offering services",
+      "examples": [
+        "Web developer",
+        "Graphic designer",
+        "Content writer",
+        "Social media manager",
+        "Virtual assistant"
+      ],
+      "how_they_join": "They contact the platform owner and get added to the platform (no self-signup)",
+      "how_clients_find_them": "Clients browse and search for their skills"
+    },
+    "admin": {
+      "who_they_are": "The platform manager/owner",
+      "responsibilities": [
+        "Add new freelancers to the platform",
+        "Keep freelancer information updated",
+        "Read and respond to messages from clients",
+        "Manage the overall platform"
+      ]
+    }
+  },
+  "step_by_step_hiring": {
+    "overview": "5 simple steps to hire someone",
+    "step_1": {
+      "name": "Browse & Find",
+      "what_you_do": "Visit the website and look through available freelancers",
+      "where": "Click 'Browse Talents' on the homepage",
+      "you_can": [
+        "Search by skill or name",
+        "Filter by price",
+        "See their photo and basic info",
+        "View their experience level"
+      ]
+    },
+    "step_2": {
+      "name": "View Full Profile",
+      "what_you_do": "Click on a freelancer to see their complete profile",
+      "what_you_see": [
+        "Their professional photo",
+        "Years of experience",
+        "What they charge (hourly rate or per project)",
+        "Their skills and specialties",
+        "Their bio (about them)",
+        "Link to their portfolio (past work samples)",
+        "Where they're located"
+      ],
+      "you_can_also": "Click 'Contact' to message them first before deciding to hire"
+    },
+    "step_3": {
+      "name": "Submit Hire Request",
+      "what_you_do": "Click 'Hire' and fill out a simple form",
+      "the_form_asks": [
+        "What's the name of your project?",
+        "What category does it fall under? (Web Dev, Design, Writing, etc.)",
+        "Describe exactly what you need done",
+        "When do you want to start?",
+        "How long will the project take?",
+        "Your full name",
+        "Your email address",
+        "Your budget (how much you can pay)"
+      ]
+    },
+    "step_4": {
+      "name": "Make Payment",
+      "what_happens": "You're taken to a secure payment page (Paystack)",
+      "payment_options": [
+        "Credit card (Visa, Mastercard)",
+        "Debit card",
+        "Bank transfer"
+      ],
+      "what_you_do": "Enter your payment details and confirm"
+    },
+    "step_5": {
+      "name": "Start Working Together",
+      "what_happens": [
+        "You get a confirmation email",
+        "The freelancer gets notified about the hire",
+        "They start working on your project",
+        "You can message them anytime",
+        "They keep you updated on progress"
+      ]
+    }
+  },
+  "key_pages_explained": {
+    "home_page": {
+      "url": "/",
+      "what_it_shows": "The main entry page of the website",
+      "what_you_see": [
+        "What ProAssistNG is about",
+        "Featured freelancers (best ones)",
+        "Types of services available",
+        "How the platform works explained",
+        "Why you should use ProAssistNG",
+        "A big button to start browsing"
+      ]
+    },
+    "browse_talents": {
+      "url": "/browse-talents",
+      "what_it_is": "The main shopping area for hiring",
+      "what_you_can_do": [
+        "See all available freelancers",
+        "Search for specific skills",
+        "Filter by price range",
+        "Sort by experience",
+        "See multiple profiles at once",
+        "Click on any to see full details"
+      ]
+    },
+    "freelancer_profile": {
+      "url": "/freelancer/[their_id]",
+      "what_it_shows": "Complete information about one freelancer",
+      "includes": [
+        "Professional photo",
+        "Their title (e.g., 'Web Developer')",
+        "Experience level",
+        "Location in Nigeria",
+        "How much they charge",
+        "List of their skills",
+        "Bio/about section",
+        "Portfolio with examples of their work",
+        "Verification badge (if verified)"
+      ],
+      "buttons": [
+        "Contact - to send them a message",
+        "Hire - to start the hiring process"
+      ]
+    },
+    "services_by_category": {
+      "url": "/services and /services/[category]",
+      "what_it_is": "View freelancers organized by type of work",
+      "examples": [
+        "Web Development",
+        "Mobile App Development",
+        "Design & Graphics",
+        "Writing & Content",
+        "Marketing & Social Media",
+        "Virtual Assistance"
+      ]
+    },
+    "how_it_works": {
+      "url": "/how-it-works",
+      "what_it_explains": "Simple explanation of how the platform works",
+      "good_for": "Understanding the process before you hire"
+    },
+    "contact": {
+      "url": "/contact",
+      "what_it_does": "Lets you send messages to the support team",
+      "use_it_for": [
+        "Ask questions about the platform",
+        "Report problems",
+        "Suggest new freelancers to hire",
+        "General inquiries"
+      ]
+    }
+  },
+  "frequently_asked_questions": {
+    "do_i_need_account": {
+      "question": "Do I need to create an account?",
+      "answer": "No! You can browse all freelancers without logging in. You only provide your email when you submit a hire request."
+    },
+    "is_there_a_fee": {
+      "question": "Is there a fee to use ProAssistNG?",
+      "answer": "No! Browsing and hiring are free. You only pay the freelancer for their work."
+    },
+    "are_freelancers_safe": {
+      "question": "How do I know the freelancers are trustworthy?",
+      "answer": "All freelancers are vetted by the admin team before being added to the platform. This means we've checked them out."
+    },
+    "what_if_unhappy": {
+      "question": "What if I'm not happy with the work?",
+      "answer": "You can message the freelancer to discuss concerns. You can also contact support if there's a serious issue."
+    },
+    "payment_security": {
+      "question": "Is my payment safe?",
+      "answer": "Yes! Paystack is a trusted, secure payment system. Your payment information is protected."
+    },
+    "can_i_message_first": {
+      "question": "Can I talk to a freelancer before hiring them?",
+      "answer": "Yes! Click 'Contact' on their profile to send a message first. Great way to ask questions."
+    },
+    "what_payment_methods": {
+      "question": "What payment methods can I use?",
+      "answer": "Credit card, Debit card, or Bank transfer through Paystack."
+    },
+    "what_after_payment": {
+      "question": "What happens after I pay?",
+      "answer": "The freelancer gets notified, you both get confirmation emails, and they start working on your project."
+    },
+    "cant_find_freelancer": {
+      "question": "What if I can't find a freelancer with the skills I need?",
+      "answer": "Use the Contact form to tell the admin what you're looking for. New freelancers are added regularly."
+    },
+    "need_help_confused": {
+      "question": "What should I do if I'm confused about using the platform?",
+      "answer": "Look for the 'Chat on WhatsApp' button on the homepage in the section that says 'Confused about how the platform works?' Click it to chat with our support team in real-time. You can also use the Contact form at /contact or email support@proassistng.com.ng"
+    },
+    "how_to_contact_support": {
+      "question": "How do I contact the ProAssistNG support team?",
+      "answer": "The fastest way is via WhatsApp (+234 810 805 1130) - click the button on the homepage. You can also use the Contact Us form at /contact or email support@proassistng.com.ng. Our team responds quickly to all inquiries."
+    }
+  },
+  "real_world_examples": {
+    "example_1": {
+      "scenario": "I need a website for my business",
+      "steps": [
+        "Go to ProAssistNG.com",
+        "Click 'Browse Talents'",
+        "Filter or search for 'Web Developer'",
+        "Look through profiles and portfolios",
+        "Find someone whose style you like",
+        "Click their profile to see rates",
+        "Click 'Hire'",
+        "Fill form: 'I need an e-commerce website for my store'",
+        "Set budget and timeline",
+        "Pay ₦200,000 via Paystack",
+        "Start working with your web developer!"
+      ]
+    },
+    "example_2": {
+      "scenario": "My business needs social media help",
+      "steps": [
+        "Go to ProAssistNG.com",
+        "Click 'Browse Talents'",
+        "Search for 'Social Media Manager'",
+        "Click 'Contact' on their profile",
+        "Ask them: 'Have you managed Instagram before?'",
+        "After they reply, if you like them, click 'Hire'",
+        "Fill form with your requirements",
+        "Pay the agreed amount",
+        "They start managing your social media"
+      ]
+    },
+    "example_3": {
+      "scenario": "I need a professional logo designed",
+      "steps": [
+        "Go to ProAssistNG.com",
+        "Search for 'Graphic Designer' or 'Logo Designer'",
+        "Look at their portfolios to see examples",
+        "Find a designer whose style matches your brand",
+        "Click 'Hire'",
+        "Explain your logo needs",
+        "Pay the design fee",
+        "Designer creates your logo",
+        "Provide feedback if needed",
+        "Get your finished logo!"
+      ]
+    }
+  },
+  "tips_for_success": {
+    "before_hiring": [
+      "Write a clear description of what you need",
+      "Be specific about deadline and budget",
+      "Look at freelancer portfolios - see their past work",
+      "Message them first if you have questions",
+      "Check their experience level matches your needs"
+    ],
+    "when_working": [
+      "Stay in touch with your freelancer",
+      "Give feedback and guidance",
+      "Be respectful and professional",
+      "Respond quickly to their questions",
+      "Address any issues early"
+    ],
+    "after_project": [
+      "Give honest feedback (helps others choose)",
+      "Recommend them if they did good work",
+      "Hire them again for future projects",
+      "Keep their contact for future needs"
+    ]
+  },
+  "payment_explained": {
+    "what_is_paystack": "A trusted online payment system in Nigeria",
+    "how_it_works": [
+      "You enter your payment details",
+      "Paystack securely processes the payment",
+      "Your money goes to the freelancer",
+      "You get a confirmation email"
+    ],
+    "is_it_safe": "Yes! Paystack is secure and trusted by thousands of businesses in Nigeria",
+    "payment_methods": [
+      "Visa/Mastercard credit or debit card",
+      "Straight from your bank account",
+      "Mobile money transfers"
+    ]
+  },
+  "getting_started": {
+    "first_time_visitor": {
+      "just_browsing": [
+        "Go to https://www.proassistng.com.ng",
+        "Scroll down to see featured freelancers",
+        "Click 'Browse Talents'",
+        "Explore different freelancers",
+        "Click profiles to see more details",
+        "No account needed!"
+      ]
+    },
+    "ready_to_hire": [
+      "Find a freelancer you like",
+      "Click their profile",
+      "Review their experience and rates",
+      "Click 'Hire'",
+      "Fill out the project form",
+      "Click 'Proceed to Payment'",
+      "Pay via Paystack",
+      "Get confirmation email",
+      "Start collaborating!"
+    ],
+    "have_questions": [
+      "The fastest way: Click 'Chat on WhatsApp' button on homepage for real-time help",
+      "Or go to the Contact page",
+      "Or click the Contact Us link at the bottom",
+      "Fill out the form",
+      "Send your question",
+      "You'll get a response from the team"
+    ]
+  },
+  "what_makes_it_different": {
+    "nigerian_focus": "We specialize in connecting with Nigerian freelancers and businesses",
+    "vetted_professionals": "Every freelancer is checked before appearing on the platform - not just anyone can join",
+    "simple_process": "Hire someone in just a few minutes - no complicated requirements",
+    "secure_payments": "Your money is protected with Paystack's secure payment system",
+    "direct_communication": "Talk directly to your freelancer - no middleman",
+    "quick_startup": "No lengthy registration or complex forms - start browsing immediately"
+  },
+  "contact_and_support": {
+    "whatsapp_support": {
+      "description": "Fastest way to get real-time help",
+      "how_to_access": "Click the 'Chat on WhatsApp' button on the homepage (in the 'Confused about how the platform works?' section)",
+      "whatsapp_number": "+234 810 805 1130",
+      "what_you_get": [
+        "Real-time responses from support team",
+        "Quick answers to any questions",
+        "Help finding the right freelancer",
+        "Support during business hours",
+        "Help with payments, hiring, and troubleshooting"
+      ]
+    },
+    "website": "https://www.proassistng.com.ng",
+    "other_contact_methods": [
+      "Use the 'Contact Us' form at the bottom of any page or go to /contact",
+      "Email support@proassistng.com.ng"
+    ],
+    "have_feedback": "We'd love to hear your ideas - use the contact form or WhatsApp",
+    "problems": "Message the freelancer first, then reach out to us on WhatsApp if needed"
+  }
+}
