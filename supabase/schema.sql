@@ -274,3 +274,34 @@ create policy "freelancer_photos_admin_delete"
       select 1 from public.admin_users au where au.user_id = auth.uid()
     )
   );
+
+-- 8) Testimonials
+create table if not exists public.testimonials (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  role text,
+  content text not null,
+  rating integer check (rating >= 1 and rating <= 5) default 5,
+  status text not null default 'approved',
+  created_at timestamptz not null default now()
+);
+
+alter table public.testimonials enable row level security;
+
+-- Anyone can insert a testimonial
+create policy "testimonials_public_insert"
+  on public.testimonials for insert to anon, authenticated
+  with check (true);
+
+-- Anyone can read approved testimonials
+create policy "testimonials_public_read"
+  on public.testimonials for select to anon, authenticated
+  using (status = 'approved');
+
+-- Admins can do everything on testimonials
+create policy "testimonials_admin_all"
+  on public.testimonials
+  for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());

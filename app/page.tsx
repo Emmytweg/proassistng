@@ -7,6 +7,7 @@ import WhyChoose from "./components/WhyChoose";
 import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
 import HelpSection from "./components/HelpSection";
+import TestimonialsSection from "./components/TestimonialsSection";
 
 import type { Metadata } from "next";
 
@@ -30,6 +31,7 @@ export default function Home() {
         <HowItWorks />
         <WhyChoose />
         <HelpSection />
+        <TestimonialsSection />
         <CTASection />
       </main>
       <Footer />
