@@ -15,6 +15,7 @@ type FreelancerCard = {
   image: string | null;
   skills: string[];
   featured: boolean;
+  status: string;
 };
 
 function getInitials(name: string) {
@@ -24,6 +25,17 @@ function getInitials(name: string) {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
+}
+
+function getStatusDetails(status?: string) {
+  const normalized = status?.trim().toLowerCase();
+  if (normalized === "active" || normalized === "online" || normalized === "available") {
+    return { class: "bg-green-500", label: "Online", isOnline: true };
+  }
+  if (normalized === "away" || normalized === "busy") {
+    return { class: "bg-amber-400", label: "Busy", isOnline: false };
+  }
+  return { class: "bg-muted-foreground", label: "Offline", isOnline: false };
 }
 
 export default function FeaturedFreelancers() {
@@ -45,9 +57,9 @@ export default function FeaturedFreelancers() {
         const { data } = await supabase
           .from("freelancers")
           .select(
-            "id, full_name, title, photo_url, skills, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, featured",
+            "id, full_name, title, photo_url, skills, hourly_rate, hourly_rate_min, hourly_rate_max, rate_type, featured, status",
           )
-          .eq("status", "active")
+          .in("status", ["active", "available", "busy"])
           .order("featured", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(12);
@@ -67,10 +79,37 @@ export default function FeaturedFreelancers() {
                 image: r.photo_url ?? null,
                 skills: Array.isArray(r.skills) ? r.skills.map(String) : [],
                 featured: !!r.featured,
+                status: String(r.status || "active"),
               };
             }),
           );
         }
+
+        // Subscribe to real-time availability updates
+        const channel = supabase
+          .channel("public:freelancers")
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "freelancers",
+            },
+            (payload) => {
+              setFreelancers((prev) =>
+                prev.map((freelancer) =>
+                  freelancer.id === String(payload.new.id)
+                    ? { ...freelancer, status: String(payload.new.status) }
+                    : freelancer,
+                ),
+              );
+            },
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
       } catch {
         // fetch failed, freelancers stays empty
       } finally {
@@ -78,9 +117,6 @@ export default function FeaturedFreelancers() {
       }
     })();
   }, []);
-  const [availabilityByIndex, setAvailabilityByIndex] = useState<boolean[]>(
-    () => freelancers.map((_, index) => index % 2 === 0),
-  );
 
   const pageCount = useMemo(() => {
     return Math.max(1, Math.ceil(freelancers.length / cardsPerPage));
@@ -160,28 +196,6 @@ export default function FeaturedFreelancers() {
 
     return () => window.clearInterval(id);
   }, [isPaused, pageCount, isInView]);
-
-  useEffect(() => {
-    // Lightweight "live" availability simulation.
-    // If you later add a real API, replace this with fetched data.
-    if (isPaused) return;
-    if (!isInView) return;
-
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "hidden") return;
-
-      setAvailabilityByIndex((prev) => {
-        if (prev.length === 0) return prev;
-
-        const next = [...prev];
-        const randomIndex = Math.floor(Math.random() * next.length);
-        next[randomIndex] = !next[randomIndex];
-        return next;
-      });
-    }, 6000);
-
-    return () => window.clearInterval(id);
-  }, [isPaused, isInView]);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -282,56 +296,48 @@ export default function FeaturedFreelancers() {
                         Top Rated
                       </div>
                     )}
-
-                    {/* Live Availability */}
-                    {(() => {
-                      const isAvailable = availabilityByIndex[index] ?? false;
-
-                      return (
-                        <span
-                          className={
-                            "absolute right-4 top-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium " +
-                            (isAvailable
-                              ? "border-primary/30 bg-primary/10 text-primary"
-                              : "border-muted bg-muted text-foreground")
-                          }
-                          aria-label={
-                            isAvailable ? "Available now" : "Currently busy"
-                          }
-                        >
-                          <span
-                            className={
-                              "h-2 w-2 rounded-full " +
-                              (isAvailable
-                                ? "bg-primary"
-                                : "bg-muted-foreground/60")
-                            }
-                          />
-                          {isAvailable ? "Available now" : "Busy"}
-                        </span>
-                      );
-                    })()}
-
                     {/* Profile */}
                     <div className="flex items-center gap-4 mb-4 mt-3">
-                      {freelancer.image ? (
-                        <Image
-                          src={freelancer.image}
-                          alt={freelancer.name}
-                          width={60}
-                          height={60}
-                          className="rounded-full object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-15 h-15 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-lg">
-                          {getInitials(freelancer.name)}
+                      <div className="relative shrink-0">
+                        <div className="rounded-full p-0.5 ring-1 ring-border transition group-hover:ring-2 group-hover:ring-primary/30">
+                          {freelancer.image ? (
+                            <Image
+                              src={freelancer.image}
+                              alt={freelancer.name}
+                              width={60}
+                              height={60}
+                              className="h-14 w-14 rounded-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            />
+                          ) : (
+                            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                              {getInitials(freelancer.name)}
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      <div>
-                        <h3 className="font-semibold">{freelancer.name}</h3>
+                        {(() => {
+                          const s = getStatusDetails(freelancer.status);
+                          return (
+                            <span
+                              className="absolute -right-0.5 -bottom-0.5 inline-flex size-3.5 items-center justify-center"
+                              title={`Status: ${s.label}`}
+                            >
+                              <span
+                                className={`relative block size-3.5 rounded-full ring-2 ring-card ${s.class}`}
+                              >
+                                {s.isOnline && (
+                                  <span className="absolute inset-0 rounded-full bg-green-500/40 animate-ping" />
+                                )}
+                              </span>
+                            </span>
+                          );
+                        })()}
+                      </div>
 
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold truncate">{freelancer.name}</h3>
+
+                        <p className="text-sm text-muted-foreground truncate">
                           {freelancer.role}
                         </p>
                       </div>
