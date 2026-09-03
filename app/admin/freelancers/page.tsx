@@ -186,9 +186,9 @@ export default function FreelancersPage() {
         animate="show"
         className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
       >
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4 md:flex-1">
           <h1 className="text-xl font-bold text-foreground">Freelancers</h1>
-          <div className="max-w-md w-full">
+          <div className="w-full max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <input
@@ -202,12 +202,19 @@ export default function FreelancersPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="button" variant="outline" className="rounded-xl">
+        <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 rounded-xl sm:flex-none"
+          >
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button asChild className="rounded-xl font-semibold">
+          <Button
+            asChild
+            className="flex-1 rounded-xl font-semibold sm:flex-none"
+          >
             <Link href="/admin/add-freelancer">
               <Plus className="h-4 w-4 mr-2" />
               Add Freelancer
@@ -232,22 +239,22 @@ export default function FreelancersPage() {
           </div>
         ) : null}
 
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-180 text-left border-collapse">
           <thead>
             <tr className="bg-muted/50 text-muted-foreground uppercase text-[11px] font-bold tracking-wider">
-              <th className="px-6 py-4">Freelancer</th>
-              <th className="px-6 py-4">Title</th>
-              <th className="px-6 py-4">Skills</th>
-              <th className="px-6 py-4">Rate</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-4 py-4 sm:px-6">Freelancer</th>
+              <th className="px-4 py-4 sm:px-6">Title</th>
+              <th className="px-4 py-4 sm:px-6">Skills</th>
+              <th className="px-4 py-4 sm:px-6">Rate</th>
+              <th className="px-4 py-4 sm:px-6">Status</th>
+              <th className="px-4 py-4 text-right sm:px-6">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {loading ? (
               <tr>
                 <td
-                  className="px-6 py-8 text-sm text-muted-foreground"
+                  className="px-4 py-8 text-sm text-muted-foreground sm:px-6"
                   colSpan={6}
                 >
                   Loading freelancers...
@@ -256,7 +263,7 @@ export default function FreelancersPage() {
             ) : filtered.length === 0 ? (
               <tr>
                 <td
-                  className="px-6 py-8 text-sm text-muted-foreground"
+                  className="px-4 py-8 text-sm text-muted-foreground sm:px-6"
                   colSpan={6}
                 >
                   No freelancers found.
@@ -268,7 +275,7 @@ export default function FreelancersPage() {
                   key={row.id}
                   className="hover:bg-muted/30 transition-colors"
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6">
                     <div className="flex items-center gap-3">
                       <InitialAvatar name={row.name} />
                       <div>
@@ -281,19 +288,21 @@ export default function FreelancersPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 sm:px-6">
                     <span className="text-sm text-muted-foreground">
                       {row.title}
                     </span>
                   </td>
-                  <td className="px-6 py-4 truncate">
+                  <td className="px-4 py-4 sm:px-6">
                     <SkillsChips skills={row.skills} />
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium">{row.rate}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 text-sm font-medium sm:px-6">
+                    {row.rate}
+                  </td>
+                  <td className="px-4 py-4 sm:px-6">
                     <StatusCell status={row.dbStatus} />
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 py-4 text-right sm:px-6">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
@@ -362,7 +371,7 @@ export default function FreelancersPage() {
         </table>
 
         {/* Pagination */}
-        <div className="px-6 py-4 bg-muted/50 border-t flex items-center justify-between">
+        <div className="flex flex-col items-start gap-4 border-t bg-muted/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">1-4</span>{" "}
             of <span className="font-semibold text-foreground">128</span>{" "}

@@ -98,7 +98,7 @@ export default function AdminNavbar() {
   }, [pathname]);
 
   return (
-    <header className="h-16 bg-background border-b flex items-center justify-between px-8 sticky top-0 z-10">
+    <header className="min-h-16 bg-background border-b flex flex-wrap md:flex-nowrap items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-0 sticky top-0 z-10">
       <div className="flex items-center gap-4 min-w-0">
         <h2 className="text-xl font-semibold text-foreground truncate">
           {title}
@@ -111,7 +111,7 @@ export default function AdminNavbar() {
       </div>
 
       {isMessages ? (
-        <div className="flex items-center gap-4 flex-1 max-w-2xl px-8">
+        <div className="order-3 basis-full sm:order-0 sm:basis-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 flex-1 max-w-2xl sm:px-4 md:px-8">
           <div className="relative w-full">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -133,7 +133,7 @@ export default function AdminNavbar() {
           </div>
           <button
             type="button"
-            className="flex items-center gap-2 px-3 py-2 bg-muted/60 rounded-xl text-xs font-medium text-muted-foreground hover:bg-muted transition-colors whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/60 rounded-xl text-xs font-medium text-muted-foreground hover:bg-muted transition-colors whitespace-nowrap"
             aria-label="Date range"
           >
             <CalendarDays className="w-4 h-4" />

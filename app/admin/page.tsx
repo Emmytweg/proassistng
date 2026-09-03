@@ -130,7 +130,7 @@ function StatCard({
     trend.direction === "up" ? "text-primary" : "text-destructive";
 
   return (
-    <div className="bg-card p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-card p-4 sm:p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div className="p-2 bg-muted rounded-lg text-muted-foreground">
           <Icon className="w-5 h-5" />
@@ -488,7 +488,7 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {toast ? (
         <div className="fixed top-6 right-6 z-50 max-w-90 w-[calc(100%-3rem)] sm:w-auto">
           <div className="bg-card border border-primary/25 rounded-xl p-4 shadow-sm">
@@ -558,7 +558,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* RECENT FREELANCERS */}
         <div className="lg:col-span-2 bg-card rounded-xl border shadow-sm overflow-hidden">
-          <div className="p-6 border-b flex items-center justify-between">
+          <div className="p-4 sm:p-6 border-b flex items-center justify-between gap-3">
             <h3 className="font-semibold text-foreground">
               Recent Freelancers
             </h3>
@@ -573,18 +573,18 @@ export default function AdminPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-muted/50 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-                  <th className="px-6 py-4">Freelancer</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Hourly rate</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4" />
+                  <th className="px-4 sm:px-6 py-4">Freelancer</th>
+                  <th className="px-4 sm:px-6 py-4">Role</th>
+                  <th className="px-4 sm:px-6 py-4">Hourly rate</th>
+                  <th className="px-4 sm:px-6 py-4">Status</th>
+                  <th className="px-4 sm:px-6 py-4" />
                 </tr>
               </thead>
               <tbody className="divide-y text-sm">
                 {loading ? (
                   <tr>
                     <td
-                      className="px-6 py-8 text-sm text-muted-foreground"
+                      className="px-4 sm:px-6 py-8 text-sm text-muted-foreground"
                       colSpan={5}
                     >
                       Loading recent freelancers...
@@ -593,7 +593,7 @@ export default function AdminPage() {
                 ) : recentFreelancers.length === 0 ? (
                   <tr>
                     <td
-                      className="px-6 py-8 text-sm text-muted-foreground"
+                      className="px-4 sm:px-6 py-8 text-sm text-muted-foreground"
                       colSpan={5}
                     >
                       No freelancers yet.
@@ -605,7 +605,7 @@ export default function AdminPage() {
                       key={row.name}
                       className="hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-foreground">
                             {row.name
@@ -619,16 +619,16 @@ export default function AdminPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">
+                      <td className="px-4 sm:px-6 py-4 text-muted-foreground">
                         {row.role}
                       </td>
-                      <td className="px-6 py-4 font-semibold text-foreground/90">
+                      <td className="px-4 sm:px-6 py-4 font-semibold text-foreground/90">
                         {row.rate}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <StatusPill status={row.status} />
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 sm:px-6 py-4 text-right">
                         <button
                           type="button"
                           className="p-1 hover:bg-muted rounded text-muted-foreground transition-colors"
@@ -646,7 +646,7 @@ export default function AdminPage() {
         </div>
 
         {/* ACTIVITY FEED */}
-        <aside className="bg-card rounded-xl border shadow-sm p-6">
+        <aside className="bg-card rounded-xl border shadow-sm p-4 sm:p-6">
           <h3 className="font-semibold text-foreground mb-6">Activity Feed</h3>
 
           <div className="relative">

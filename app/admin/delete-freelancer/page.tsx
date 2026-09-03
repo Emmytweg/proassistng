@@ -35,8 +35,8 @@ export default function DeleteFreelancerPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto mt-20">
-      <div className="bg-card border rounded-2xl p-8 shadow-xl shadow-black/5 flex flex-col items-center gap-6 text-center">
+    <div className="mx-auto mt-8 w-full max-w-lg sm:mt-20">
+      <div className="flex flex-col items-center gap-6 rounded-2xl border bg-card p-4 text-center shadow-xl shadow-black/5 sm:p-8">
         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
           <Trash2 className="w-7 h-7 text-destructive" />
         </div>
@@ -47,8 +47,10 @@ export default function DeleteFreelancerPage() {
           </h2>
           <p className="text-sm text-muted-foreground mt-2">
             Are you sure you want to permanently delete{" "}
-            <span className="font-semibold text-foreground">{name}</span>? This
-            action cannot be undone.
+            <span className="wrap-break-word font-semibold text-foreground">
+              {name}
+            </span>
+            ? This action cannot be undone.
           </p>
         </div>
 

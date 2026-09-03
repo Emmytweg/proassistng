@@ -611,7 +611,7 @@ export default function FreelancerForm({
           <BadgeCheck className="h-4 w-4" />
           {freelancerId ? "Profile update" : "Marketplace onboarding"}
         </div>
-        <h3 className="text-3xl font-black text-foreground">
+        <h3 className="text-2xl font-black text-foreground sm:text-3xl">
           {freelancerId
             ? "Edit Freelancer Profile"
             : "Create Professional Profile"}
@@ -719,7 +719,7 @@ export default function FreelancerForm({
             })();
           }}
         >
-          <div className="p-8 space-y-8">
+          <div className="space-y-6 p-4 sm:space-y-8 sm:p-8">
             {/* Import profile data */}
             <div className="rounded-2xl border border-dashed bg-muted/20 p-4 sm:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1076,7 +1076,7 @@ export default function FreelancerForm({
                       setSkills((prev) => [...prev, next]);
                       setSkillInput("");
                     }}
-                    className="border-none bg-transparent focus-visible:outline-none focus-visible:ring-0 p-1 text-sm flex-1 min-w-35"
+                    className="min-w-30 flex-1 border-none bg-transparent p-1 text-sm focus-visible:outline-none focus-visible:ring-0 sm:min-w-35"
                     placeholder="Add more..."
                     type="text"
                   />
@@ -1248,11 +1248,11 @@ export default function FreelancerForm({
           </div>
 
           {/* Footer actions */}
-          <div className="px-8 py-6 bg-muted/40 flex items-center justify-end gap-4 border-t">
+          <div className="flex flex-col items-stretch gap-3 border-t bg-muted/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:gap-4 sm:px-8 sm:py-6">
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl"
+              className="w-full rounded-xl sm:w-auto"
               onClick={() => router.push("/admin/freelancers")}
             >
               Cancel
@@ -1263,7 +1263,7 @@ export default function FreelancerForm({
             <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}>
               <Button
                 type="submit"
-                className="rounded-xl font-semibold"
+                className="w-full rounded-xl font-semibold sm:w-auto"
                 disabled={submitting}
               >
                 {submitting

@@ -74,6 +74,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (!clientEmail.trim()) {
+    return NextResponse.json(
+      { error: "Missing client email." },
+      { status: 400 },
+    );
+  }
+
   const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
   if (!paystackSecretKey) {
     return NextResponse.json(
@@ -178,7 +185,7 @@ export async function POST(req: NextRequest) {
       const supabase = getSupabaseServerClient();
       await supabase.from("messages").insert({
         sender_name: clientName,
-        sender_email: clientEmail || null,
+        sender_email: clientEmail.trim(),
         subject: `🤝 Hire request: "${projectTitle}" for ${freelancerName}`,
         body: [
           `New hire request received on ProAssistNG.`,

@@ -147,7 +147,7 @@ create policy "freelancers_public_read"
 create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),
   sender_name text not null,
-  sender_email text,
+  sender_email text not null,
   user_ref text,
   subject text not null,
   body text not null,
@@ -159,6 +159,15 @@ create table if not exists public.messages (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Existing records may have been created before email became required.
+-- Replace missing historical values before enforcing the constraint.
+update public.messages
+set sender_email = 'no-email@proassistng.invalid'
+where sender_email is null or btrim(sender_email) = '';
+
+alter table public.messages
+  alter column sender_email set not null;
 
 alter table public.messages enable row level security;
 

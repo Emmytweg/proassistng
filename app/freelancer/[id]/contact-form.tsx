@@ -28,7 +28,7 @@ export default function ContactForm({
       const supabase = getSupabaseBrowserClient();
       const { error: insertError } = await supabase.from("messages").insert({
         sender_name: name.trim(),
-        sender_email: email.trim() || null,
+        sender_email: email.trim(),
         subject: `Message for ${freelancerName}`,
         body: message.trim(),
         user_ref: freelancerId,
@@ -43,7 +43,7 @@ export default function ContactForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           senderName: name.trim(),
-          senderEmail: email.trim() || undefined,
+          senderEmail: email.trim(),
           freelancerName,
           messageBody: message.trim(),
         }),
@@ -90,13 +90,9 @@ export default function ContactForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold">
-              Email{" "}
-              <span className="text-muted-foreground font-normal">
-                (optional)
-              </span>
-            </label>
+            <label className="text-sm font-semibold">Email</label>
             <input
+              required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

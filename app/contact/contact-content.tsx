@@ -138,12 +138,12 @@ export default function ContactContent() {
                   className="space-y-6"
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!fullName.trim() || !message.trim()) return;
+                    if (!fullName.trim() || !email.trim() || !message.trim()) return;
                     setLoading(true);
                     const supabase = getSupabaseBrowserClient();
                     const { error } = await supabase.from("messages").insert({
                       sender_name: fullName.trim(),
-                      sender_email: email.trim() || null,
+                      sender_email: email.trim(),
                       subject,
                       body: message.trim(),
                     });
@@ -155,7 +155,7 @@ export default function ContactContent() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           senderName: fullName.trim(),
-                          senderEmail: email.trim() || undefined,
+                          senderEmail: email.trim(),
                           subject,
                           messageBody: message.trim(),
                         }),
@@ -208,6 +208,7 @@ export default function ContactContent() {
                       </label>
                       <input
                         id="contact-email"
+                        required
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}

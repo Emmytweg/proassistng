@@ -191,10 +191,10 @@ export default function AdminMessagesPage() {
   );
 
   return (
-    <div className="-m-4 flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background sm:-m-6 lg:-m-8 lg:flex-row">
+    <div className="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-background sm:-m-6 md:-m-8 lg:flex-row">
       {/* Messages list */}
       <section className="w-full border-b border-border bg-card/60 overflow-hidden lg:w-2/5 lg:min-w-88 lg:border-b-0 lg:border-r">
-        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/70 p-4 backdrop-blur">
+        <div className="sticky top-0 z-10 flex flex-wrap items-start justify-between gap-3 border-b border-border bg-background/70 p-4 backdrop-blur sm:items-center">
           <div className="flex gap-2">
             <button
               type="button"
@@ -233,7 +233,7 @@ export default function AdminMessagesPage() {
               Starred
             </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
             <button
               type="button"
               className="text-primary text-xs font-bold hover:underline"
@@ -412,7 +412,7 @@ export default function AdminMessagesPage() {
                   ? "Mark as Open"
                   : "Mark as Resolved"
               }
-              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors disabled:opacity-40 sm:px-4 sm:text-sm ${
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors disabled:opacity-40 sm:w-auto sm:px-4 sm:text-sm ${
                 selected?.status === "resolved"
                   ? "bg-muted text-muted-foreground hover:bg-muted/70"
                   : "bg-primary/10 text-primary hover:bg-primary/15"
