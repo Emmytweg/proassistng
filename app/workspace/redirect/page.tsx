@@ -1,12 +1,26 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, ShieldCheck } from "lucide-react";
 import { API_ENDPOINTS, readApiError } from "@/lib/api";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export default function WorkspaceRedirectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+          Redirecting to your secure workspace…
+        </div>
+      }
+    >
+      <WorkspaceRedirectContent />
+    </Suspense>
+  );
+}
+
+function WorkspaceRedirectContent() {
   const router = useRouter();
   const params = useSearchParams();
   const projectId = params.get("project_id") ?? "";
