@@ -3,14 +3,14 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { getSiteUrl } from "@/lib/server-config";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+const SITE_URL = getSiteUrl();
 const SITE_NAME = "ProAssistNG";
 const DEFAULT_TITLE = "ProAssistNG - Freelance Marketplace";
 const DEFAULT_DESCRIPTION =
@@ -19,7 +19,6 @@ const DEFAULT_DESCRIPTION =
 export const metadata: Metadata = {
   icons: {
     icon: "/logo.png",
-   
   },
   metadataBase: new URL(SITE_URL),
   title: {
@@ -41,7 +40,6 @@ export const metadata: Metadata = {
     "social media manager Nigeria",
     "SEO specialist Nigeria",
     "freelance marketplace Nigeria",
-    
   ],
   applicationName: SITE_NAME,
   alternates: {

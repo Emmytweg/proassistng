@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { esc, getClientIp, rateLimit } from "@/lib/security";
+import { getSiteUrl } from "@/lib/server-config";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
   }
 
   const GMAIL_USER = process.env.GMAIL_USER;
-  const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, '');
+  const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, "");
 
   if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
     return NextResponse.json({ ok: true, skipped: true });
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
         messageBody,
         ``,
         `—`,
-        `View it in your admin dashboard: ${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin/messages`,
+        `View it in your admin dashboard: ${getSiteUrl()}/admin/messages`,
       ].join("\n"),
       html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111">
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
           <tr><td style="padding:6px 12px 6px 0;color:#6b7280;font-size:13px;white-space:nowrap">Subject</td><td style="padding:6px 0;font-weight:600">${esc(subject)}</td></tr>
         </table>
         <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;margin-bottom:24px;font-size:14px;line-height:1.7;white-space:pre-wrap">${esc(messageBody)}</div>
-        <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL ?? "")}/admin/messages"
+        <a href="${esc(getSiteUrl())}/admin/messages"
            style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600">
           View in Admin Dashboard →
         </a>

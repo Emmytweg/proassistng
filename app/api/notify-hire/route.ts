@@ -10,6 +10,14 @@ import {
   rateLimit,
   releaseIdempotencyLock,
 } from "@/lib/security";
+import {
+  createProjectWorkspaceForHire,
+  findFreelancerEmail,
+  findProjectWorkspaceByTxRef,
+  getWorkspaceUrl,
+  sendWorkspaceMagicLink,
+} from "@/lib/workspace";
+import { getPaystackApiUrl, getSiteUrl } from "@/lib/server-config";
 
 // Escape HTML entities to prevent injection in email HTML body
 function esc(str: string): string {
@@ -91,7 +99,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const verifyRes = await fetch(
-      `https://api.paystack.co/transaction/verify/${encodeURIComponent(txRef)}`,
+      `${getPaystackApiUrl()}/transaction/verify/${encodeURIComponent(txRef)}`,
       {
         headers: {
           Authorization: `Bearer ${paystackSecretKey}`,
@@ -159,7 +167,15 @@ export async function POST(req: NextRequest) {
   const idempotencyKey = `notify-hire:${txRef}`;
   const alreadyProcessed = await hasProcessedIdempotency(idempotencyKey);
   if (alreadyProcessed) {
-    return NextResponse.json({ ok: true, duplicate: true });
+    const existingWorkspace = await findProjectWorkspaceByTxRef(txRef);
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      workspaceId: existingWorkspace?.id ?? null,
+      workspaceUrl: existingWorkspace?.id
+        ? getWorkspaceUrl(existingWorkspace.id)
+        : null,
+    });
   }
 
   const lockAcquired = await acquireIdempotencyLock(idempotencyKey, 120);
@@ -180,6 +196,44 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    let workspaceProjectId: string | null = null;
+    let workspaceSetupError: string | null = null;
+    try {
+      const freelancerEmail = await findFreelancerEmail(freelancerId);
+      const workspace = await createProjectWorkspaceForHire({
+        txRef,
+        freelancerId,
+        freelancerName,
+        freelancerEmail,
+        clientName,
+        clientEmail,
+        projectTitle,
+        description,
+        requirements,
+        amount,
+        serviceTitle: projectTitle,
+      });
+      workspaceProjectId = workspace.projectId;
+
+      if (workspaceProjectId) {
+        await sendWorkspaceMagicLink(workspaceProjectId, clientEmail);
+        if (freelancerEmail && freelancerEmail !== clientEmail.toLowerCase()) {
+          await sendWorkspaceMagicLink(workspaceProjectId, freelancerEmail);
+        }
+      }
+    } catch (workspaceError) {
+      console.error("[notify-hire] workspace creation failed:", workspaceError);
+      workspaceSetupError =
+        "Workspace setup is not configured. Add SUPABASE_SERVICE_ROLE_KEY and retry.";
+    }
+
+    if (!workspaceProjectId) {
+      return NextResponse.json(
+        { error: workspaceSetupError ?? "Workspace could not be created." },
+        { status: 503 },
+      );
+    }
+
     // ── 1. Insert into admin messages (Supabase) ────────────────────────────
     try {
       const supabase = getSupabaseServerClient();
@@ -203,6 +257,7 @@ export async function POST(req: NextRequest) {
           `Freelancer Amount: ₦${baseAmount.toLocaleString("en-NG")}`,
           `Platform Fee (5%): ₦${platformFee.toLocaleString("en-NG")}`,
           `Total Paid: ₦${amount.toLocaleString("en-NG")}`,
+          workspaceProjectId ? `Workspace ID: ${workspaceProjectId}` : "",
           ``,
           txRef ? `Paystack Ref: ${txRef}` : "",
           transactionId ? `Transaction ID: ${transactionId}` : "",
@@ -223,7 +278,14 @@ export async function POST(req: NextRequest) {
 
     if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
       await markProcessedIdempotency(idempotencyKey, 60 * 60 * 24 * 30);
-      return NextResponse.json({ ok: true, skipped: "email" });
+      return NextResponse.json({
+        ok: true,
+        skipped: "email",
+        workspaceId: workspaceProjectId,
+        workspaceUrl: workspaceProjectId
+          ? getWorkspaceUrl(workspaceProjectId)
+          : null,
+      });
     }
 
     const transporter = nodemailer.createTransport({
@@ -231,7 +293,7 @@ export async function POST(req: NextRequest) {
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    const siteUrl = getSiteUrl();
 
     await transporter
       .sendMail({
@@ -307,7 +369,13 @@ export async function POST(req: NextRequest) {
       });
 
     await markProcessedIdempotency(idempotencyKey, 60 * 60 * 24 * 30);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      workspaceId: workspaceProjectId,
+      workspaceUrl: workspaceProjectId
+        ? getWorkspaceUrl(workspaceProjectId)
+        : null,
+    });
   } finally {
     await releaseIdempotencyLock(idempotencyKey);
   }

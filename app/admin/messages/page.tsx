@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { API_ENDPOINTS } from "@/lib/api";
 
 type Attachment = {
   name: string;
@@ -567,7 +568,7 @@ export default function AdminMessagesPage() {
                             data: { session },
                           } = await supabase.auth.getSession();
 
-                          const res = await fetch("/api/send-reply", {
+                          const res = await fetch(API_ENDPOINTS.reply, {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",

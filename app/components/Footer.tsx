@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { API_ENDPOINTS, readApiError } from "@/lib/api";
 
 const footerLinks = [
   { name: "Overview", href: "/" },
@@ -27,15 +28,14 @@ export default function Footer() {
     setStatus("loading");
     setMessage("");
     try {
-      const res = await fetch("/api/subscribe", {
+      const res = await fetch(API_ENDPOINTS.subscribe, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-      const json = await res.json();
       if (!res.ok) {
         setStatus("error");
-        setMessage(json.error ?? "Something went wrong.");
+        setMessage(await readApiError(res, "Something went wrong."));
       } else {
         setStatus("success");
         setMessage("You're subscribed! Thanks for joining.");

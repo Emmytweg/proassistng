@@ -10,6 +10,7 @@ import { getServiceCategory, serviceCategories } from "@/lib/services";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TalentCardProps } from "@/app/components/talent/TalentCard";
 import { formatFreelancerRate } from "@/lib/rate-format";
+import { getSiteUrl } from "@/lib/server-config";
 
 export async function generateMetadata({
   params,
@@ -79,8 +80,7 @@ export default async function ServiceCategoryPage({
 
   const category = getServiceCategory(slug);
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+  const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/services/${encodeURIComponent(slug)}`;
   const jsonLd = category
     ? {

@@ -7,6 +7,7 @@ import { useMemo, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { API_ENDPOINTS } from "@/lib/api";
 
 type SubjectOption =
   | "General inquiry"
@@ -138,7 +139,8 @@ export default function ContactContent() {
                   className="space-y-6"
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!fullName.trim() || !email.trim() || !message.trim()) return;
+                    if (!fullName.trim() || !email.trim() || !message.trim())
+                      return;
                     setLoading(true);
                     const supabase = getSupabaseBrowserClient();
                     const { error } = await supabase.from("messages").insert({
@@ -150,7 +152,7 @@ export default function ContactContent() {
 
                     // Fire and forget email notification
                     if (!error) {
-                      fetch("/api/notify-contact", {
+                      fetch(API_ENDPOINTS.contactNotification, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({

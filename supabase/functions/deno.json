@@ -1,0 +1,7 @@
+{
+  "functions": [
+    {
+      "importMap": "pin:@supabase/functions-js/import_map.json"
+    }
+  ]
+}

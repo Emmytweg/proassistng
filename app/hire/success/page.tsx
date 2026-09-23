@@ -6,6 +6,7 @@ import {
   calculateTransactionBreakdown,
   parseNairaAmount,
 } from "@/lib/payment-pricing";
+import { findProjectWorkspaceByTxRef, getWorkspaceUrl } from "@/lib/workspace";
 
 export default async function HireSuccessPage({
   searchParams,
@@ -15,6 +16,8 @@ export default async function HireSuccessPage({
   const p = await searchParams;
   const txRef = p.tx_ref ?? "";
   const transactionId = p.transaction_id ?? "";
+  const returnedWorkspaceUrl = p.workspace_url ?? "";
+  const workspaceError = p.workspace_error ?? "";
   const amount = parseNairaAmount(p.amount ?? 0);
   const baseAmount = parseNairaAmount(p.base_amount);
   const platformFee = parseNairaAmount(p.platform_fee);
@@ -22,6 +25,10 @@ export default async function HireSuccessPage({
   const displayBaseAmount = baseAmount > 0 ? baseAmount : fallback.baseAmount;
   const displayPlatformFee =
     platformFee > 0 ? platformFee : fallback.platformFee;
+  const workspace = txRef ? await findProjectWorkspaceByTxRef(txRef) : null;
+  const workspaceUrl =
+    returnedWorkspaceUrl ||
+    (workspace?.id ? getWorkspaceUrl(workspace.id) : "");
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -43,6 +50,33 @@ export default async function HireSuccessPage({
           has been received. The freelancer will be notified and will reach out
           shortly.
         </p>
+
+        {workspaceUrl ? (
+          <div className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary/80">
+              Secure workspace
+            </p>
+            <p className="mt-2 text-base font-semibold text-foreground">
+              {workspace?.title ?? "Your private project workspace"}
+            </p>
+            <Link
+              href={workspaceUrl}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Open workspace
+            </Link>
+          </div>
+        ) : workspaceError ? (
+          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
+              Workspace setup in progress
+            </p>
+            <p className="mt-2 text-sm text-amber-800">
+              Your payment succeeded. We could not generate the workspace link
+              yet. Please keep this page open and try again shortly.
+            </p>
+          </div>
+        ) : null}
 
         {/* Receipt details */}
         <div className="rounded-2xl border bg-card p-5 text-sm space-y-3 mb-8 text-left">

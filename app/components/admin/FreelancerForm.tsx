@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   BadgeCheck,
   Camera,
+  Mail,
   Link as LinkIcon,
   MapPin,
   Pencil,
@@ -392,6 +393,7 @@ function InputShell({
 
 export type FreelancerInitialData = {
   full_name: string;
+  email: string | null;
   title: string | null;
   location: string | null;
   experience: ExperienceOption;
@@ -427,6 +429,7 @@ export default function FreelancerForm({
   );
 
   const [fullName, setFullName] = useState(initialData?.full_name ?? "");
+  const [email, setEmail] = useState(initialData?.email ?? "");
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [location, setLocation] = useState(initialData?.location ?? "");
   const [experience, setExperience] = useState<ExperienceOption>(
@@ -675,6 +678,7 @@ export default function FreelancerForm({
                     : rawMax;
                 const payload = {
                   full_name: fullName.trim() || "Unnamed",
+                  email: email.trim().toLowerCase() || null,
                   title: title.trim() || null,
                   location: location.trim() || null,
                   experience: experience || null,
@@ -699,6 +703,15 @@ export default function FreelancerForm({
                     .update(payload)
                     .eq("id", freelancerId);
                   if (error) throw error;
+
+                  const { error: workspaceSyncError } = await supabase
+                    .from("project_workspaces")
+                    .update({
+                      freelancer_email: payload.email,
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq("freelancer_id", freelancerId);
+                  if (workspaceSyncError) throw workspaceSyncError;
                 } else {
                   const { error } = await supabase
                     .from("freelancers")
@@ -869,6 +882,22 @@ export default function FreelancerForm({
                     type="text"
                   />
                 </InputShell>
+              </Field>
+
+              <Field label="Private email for workspace access">
+                <InputShell icon={<Mail className="h-4 w-4" />}>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-muted/30 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-sm"
+                    placeholder="freelancer@example.com"
+                    type="email"
+                    autoComplete="email"
+                  />
+                </InputShell>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Used only to send private project workspace invitations.
+                </p>
               </Field>
 
               <Field label="Professional Title">

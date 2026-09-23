@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 
 import { serviceCategories } from "@/lib/services";
+import { getSiteUrl } from "@/lib/server-config";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+const SITE_URL = getSiteUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

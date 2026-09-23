@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data: https:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' https://js.paystack.co",
-  "connect-src 'self' https://*.supabase.co https://api.paystack.co https://*.upstash.io",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.paystack.co https://*.upstash.io",
   "frame-src https://js.paystack.co https://checkout.paystack.com",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -21,7 +21,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(self), microphone=(self), geolocation=()",
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-site" },

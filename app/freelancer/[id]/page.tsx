@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { serviceCategories } from "@/lib/services";
 import { formatFreelancerRate } from "@/lib/rate-format";
+import { getSiteUrl } from "@/lib/server-config";
 import ContactForm from "./contact-form";
 import HireFlow from "./hire-flow";
 
@@ -89,8 +90,7 @@ export default async function FreelancerProfilePage({
 
   if (error || !r) notFound();
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.proassistng.com.ng";
+  const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/freelancer/${encodeURIComponent(id)}`;
 
   const jsonLd = {

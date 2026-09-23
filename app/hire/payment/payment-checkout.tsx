@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CreditCard, Building2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calculateTransactionBreakdown } from "@/lib/payment-pricing";
+import { API_ENDPOINTS } from "@/lib/api";
 
 // Paystack inline JS is loaded via Script in layout or on demand here.
 // No npm package needed — works with any React version.
@@ -61,12 +62,12 @@ const PAYMENT_METHODS = [
     sub: "Instant bank payment",
     icon: Building2,
   },
-  {
-    id: "ussd" as const,
-    label: "USSD",
-    sub: "*737#",
-    icon: Smartphone,
-  },
+  // {
+  //   id: "ussd" as const,
+  //   label: "USSD",
+  //   sub: "*737#",
+  //   icon: Smartphone,
+  // },
 ];
 
 type MethodId = (typeof PAYMENT_METHODS)[number]["id"];
@@ -92,6 +93,7 @@ export default function PaymentCheckout({
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
+  const paymentCallbackHandledRef = useRef(false);
 
   // Load Paystack inline JS once on mount — no npm package needed
   useEffect(() => {
@@ -115,8 +117,57 @@ export default function PaymentCheckout({
   // Paystack expects kobo (NGN × 100)
   const amountKobo = Math.round(amount * 100);
 
+  async function handleSuccessfulPayment(response: {
+    reference: string;
+    transaction: string;
+    status: string;
+  }) {
+    setLoading(true);
+    let notificationResponse: Response | null = null;
+    let notificationBody: { workspaceUrl?: string | null; error?: string } = {};
+
+    try {
+      notificationResponse = await fetch(API_ENDPOINTS.hireNotification, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          freelancerId,
+          freelancerName,
+          clientName,
+          clientEmail,
+          projectTitle,
+          category,
+          description,
+          startDate,
+          duration,
+          commitment,
+          requirements,
+          baseAmount,
+          platformFee,
+          amount,
+          txRef: response.reference,
+          transactionId: response.transaction,
+        }),
+      });
+
+      notificationBody = (await notificationResponse
+        .json()
+        .catch(() => ({}))) as {
+        workspaceUrl?: string | null;
+        error?: string;
+      };
+    } catch {
+      notificationBody = { error: "Workspace setup is still processing." };
+    }
+
+    router.push(
+      `/hire/success?tx_ref=${encodeURIComponent(response.reference)}&transaction_id=${encodeURIComponent(response.transaction)}&amount=${amount}&base_amount=${baseAmount}&platform_fee=${platformFee}${notificationBody.workspaceUrl ? `&workspace_url=${encodeURIComponent(notificationBody.workspaceUrl)}` : ""}${!notificationResponse?.ok || notificationBody.error ? `&workspace_error=${encodeURIComponent(notificationBody.error ?? "Workspace setup is still processing.")}` : ""}`,
+    );
+  }
+
   function handlePay() {
     if (!agreed || loading || !sdkReady || !window.PaystackPop) return;
+    paymentCallbackHandledRef.current = false;
     setLoading(true);
 
     const handler = window.PaystackPop.setup({
@@ -146,36 +197,14 @@ export default function PaymentCheckout({
       },
       onClose: () => setLoading(false),
       callback: (response) => {
-        if (response.status === "success") {
-          fetch("/api/notify-hire", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              freelancerId,
-              freelancerName,
-              clientName,
-              clientEmail,
-              projectTitle,
-              category,
-              description,
-              startDate,
-              duration,
-              commitment,
-              requirements,
-              baseAmount,
-              platformFee,
-              amount,
-              txRef: response.reference,
-              transactionId: response.transaction,
-            }),
-          }).catch(() => {});
-
-          router.push(
-            `/hire/success?tx_ref=${encodeURIComponent(response.reference)}&transaction_id=${encodeURIComponent(response.transaction)}&amount=${amount}&base_amount=${baseAmount}&platform_fee=${platformFee}`,
-          );
-        } else {
+        if (response.status !== "success") {
           setLoading(false);
+          return;
         }
+
+        if (paymentCallbackHandledRef.current) return;
+        paymentCallbackHandledRef.current = true;
+        void handleSuccessfulPayment(response);
       },
     });
     handler.openIframe();

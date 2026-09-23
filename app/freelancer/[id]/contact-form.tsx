@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { API_ENDPOINTS } from "@/lib/api";
 
 export default function ContactForm({
   freelancerId,
@@ -38,7 +39,7 @@ export default function ContactForm({
       if (insertError) throw insertError;
 
       // Fire-and-forget email notification to support inbox
-      fetch("/api/notify-enquiry", {
+      fetch(API_ENDPOINTS.enquiryNotification, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -63,6 +63,7 @@ alter table public.freelancers add column if not exists hourly_rate_max numeric;
 alter table public.freelancers add column if not exists rate_type text not null default 'hourly';
 alter table public.freelancers add column if not exists service_slugs text[] not null default '{}'::text[];
 alter table public.freelancers add column if not exists phone_number text;
+alter table public.freelancers add column if not exists email text;
 
 -- Backfill range columns from legacy hourly_rate where needed.
 update public.freelancers
